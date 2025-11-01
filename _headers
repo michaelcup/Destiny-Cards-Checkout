@@ -1,0 +1,2 @@
+/*
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.network; style-src 'self' 'unsafe-inline' https://m.stripe.network; frame-src 'self' https://js.stripe.com https://m.stripe.network; connect-src 'self' https://api.stripe.com https://m.stripe.network; img-src 'self' data: https:;
