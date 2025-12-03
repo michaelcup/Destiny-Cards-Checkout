@@ -13,12 +13,21 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    const { 
-      paymentMethodId, 
-      amount, 
+    const {
+      paymentMethodId,
+      amount,
       customerData,
       billingData
     } = JSON.parse(event.body);
+
+    // Build order description from cart items
+    const cartItems = customerData.cartItems || [];
+    const orderDescription = cartItems.map(item =>
+      `${item.quantity}x ${item.productName}`
+    ).join(', ');
+
+    // Check if order includes pre-order items
+    const hasPreOrder = cartItems.some(item => item.splitShipment);
 
     // Create payment intent
     const paymentIntent = await stripe.paymentIntents.create({
@@ -26,7 +35,7 @@ exports.handler = async (event, context) => {
       currency: 'usd',
       payment_method: paymentMethodId,
       confirm: true,
-      description: `Destiny Cards Order - ${customerData.productName} - ${customerData.firstName} ${customerData.lastName}`,
+      description: `Destiny Cards Order - ${orderDescription} - ${customerData.firstName} ${customerData.lastName}`,
       receipt_email: customerData.email,
       shipping: {
         name: `${customerData.firstName} ${customerData.lastName}`,
@@ -38,6 +47,10 @@ exports.handler = async (event, context) => {
           postal_code: customerData.shippingAddress.postalCode,
           country: customerData.shippingAddress.country,
         }
+      },
+      metadata: {
+        hasPreOrder: hasPreOrder.toString(),
+        cartItems: JSON.stringify(cartItems)
       },
       return_url: 'https://destinycards.paradoxprocess.org',
     });
@@ -123,29 +136,27 @@ exports.handler = async (event, context) => {
 async function integrateWithKeap(data) {
   try {
     console.log('Received data in integrateWithKeap:', JSON.stringify(data, null, 2));
-    
+
     const {
       firstName,
       lastName,
       email,
       emailConsent,
-      product,
-      productName,
-      productPrice,
+      cartItems,
       shippingAddress,
       paymentId,
       amountPaid
     } = data;
 
     const accessToken = process.env.KEAP_ACCESS_TOKEN;
-    
+
     console.log('Environment check:');
     console.log('Has KEAP_ACCESS_TOKEN:', !!accessToken);
-    
+
     if (!accessToken) {
       throw new Error('Keap Personal Access Token not configured');
     }
-    
+
     if (!accessToken.startsWith('KeapAK-')) {
       throw new Error('Keap token appears to be malformed - should start with KeapAK-');
     }
@@ -153,21 +164,35 @@ async function integrateWithKeap(data) {
     // Format shipping address for Keap
     const shippingAddressFormatted = `${shippingAddress.line1}${shippingAddress.line2 ? '\n' + shippingAddress.line2 : ''}\n${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postalCode}\n${shippingAddress.country}`;
 
+    // Build order summary from cart items
+    const orderSummary = cartItems.map(item =>
+      `${item.quantity}x ${item.productName} ($${item.productPrice * item.quantity})`
+    ).join('\n');
+
+    // Calculate total price from cart
+    const totalPrice = cartItems.reduce((sum, item) => sum + (item.productPrice * item.quantity), 0);
+
+    // Determine product types in order
+    const hasCardsOnly = cartItems.some(item => item.productId === 'cards-only');
+    const hasBundle = cartItems.some(item => item.productId === 'cards-book-bundle');
+    const hasPreOrder = cartItems.some(item => item.splitShipment);
+
     // Create or update contact
     const contact = await createOrUpdateContact(accessToken, {
       firstName,
       lastName,
       email,
       emailConsent,
-      product,
-      productName,
-      productPrice,
+      cartItems,
+      orderSummary,
+      totalPrice,
       shippingAddressFormatted,
-      paymentId
+      paymentId,
+      hasPreOrder
     });
 
     // Create tags for this order
-    const tagIds = await createOrderTags(accessToken, product, paymentId);
+    const tagIds = await createOrderTags(accessToken, cartItems, paymentId, hasPreOrder);
 
     // Apply tags to contact
     await applyTagsToContact(accessToken, contact.id, tagIds);
@@ -195,11 +220,12 @@ async function createOrUpdateContact(accessToken, contactData) {
     lastName,
     email,
     emailConsent,
-    product,
-    productName,
-    productPrice,
+    cartItems,
+    orderSummary,
+    totalPrice,
     shippingAddressFormatted,
-    paymentId
+    paymentId,
+    hasPreOrder
   } = contactData;
 
   console.log('Creating/updating contact for:', email);
@@ -221,35 +247,48 @@ async function createOrUpdateContact(accessToken, contactData) {
 
   let contact;
 
+  // Build product IDs string from cart
+  const productIds = cartItems.map(item => item.productId).join(', ');
+
   // Custom field IDs for Destiny Cards (you'll need to create these in Keap)
   // These are placeholders - replace with actual IDs from your Keap instance
   const CUSTOM_FIELDS = {
-    PRODUCT_ORDERED: 291,      // Text field: which product (cards-only or cards-book)
-    PRODUCT_NAME: 293,          // Text field: full product name
-    PRODUCT_PRICE: 295,         // Number field: price paid
-    SHIPPING_ADDRESS: 297,      // Text Area field: full shipping address
-    PAYMENT_ID: 299,            // Text field: Stripe payment ID
-    ORDER_DATE: 301             // Date field: when order was placed
+    PRODUCT_ORDERED: 291,           // Text field: which product(s) ordered
+    ORDER_SUMMARY: 293,             // Text Area field: full order summary
+    PRODUCT_PRICE: 295,             // Number field: total price paid
+    SHIPPING_ADDRESS: 297,          // Text Area field: full shipping address
+    PAYMENT_ID: 299,                // Text field: Stripe payment ID
+    ORDER_DATE: 301,                // Date field: when order was placed
+    // NEW: Tracking number fields for shipping notifications
+    CARDS_TRACKING_NUMBER: 303,     // Text field: tracking number for cards shipment
+    CARDS_SHIPPED_DATE: 305,        // Date field: when cards were shipped
+    BOOK_TRACKING_NUMBER: 307,      // Text field: tracking number for book shipment (pre-orders)
+    BOOK_SHIPPED_DATE: 309,         // Date field: when book was shipped
+    HAS_PREORDER: 311               // Yes/No field: whether order includes pre-order items
   };
+
+  // Build custom fields array
+  const customFields = [
+    { id: CUSTOM_FIELDS.PRODUCT_ORDERED, content: productIds },
+    { id: CUSTOM_FIELDS.ORDER_SUMMARY, content: orderSummary },
+    { id: CUSTOM_FIELDS.PRODUCT_PRICE, content: totalPrice.toString() },
+    { id: CUSTOM_FIELDS.SHIPPING_ADDRESS, content: shippingAddressFormatted },
+    { id: CUSTOM_FIELDS.PAYMENT_ID, content: paymentId },
+    { id: CUSTOM_FIELDS.ORDER_DATE, content: new Date().toISOString().split('T')[0] },
+    { id: CUSTOM_FIELDS.HAS_PREORDER, content: hasPreOrder ? 'Yes' : 'No' }
+  ];
 
   if (searchData.contacts && searchData.contacts.length > 0) {
     // Update existing contact
     const contactId = searchData.contacts[0].id;
     console.log('Updating existing contact:', contactId);
-    
+
     const updatePayload = {
       given_name: firstName,
       family_name: lastName,
       email_addresses: [{ email: email, field: 'EMAIL1' }],
       opt_in_reason: emailConsent ? 'Destiny Cards Purchase' : null,
-      custom_fields: [
-        { id: CUSTOM_FIELDS.PRODUCT_ORDERED, content: product },
-        { id: CUSTOM_FIELDS.PRODUCT_NAME, content: productName },
-        { id: CUSTOM_FIELDS.PRODUCT_PRICE, content: productPrice.toString() },
-        { id: CUSTOM_FIELDS.SHIPPING_ADDRESS, content: shippingAddressFormatted },
-        { id: CUSTOM_FIELDS.PAYMENT_ID, content: paymentId },
-        { id: CUSTOM_FIELDS.ORDER_DATE, content: new Date().toISOString().split('T')[0] }
-      ]
+      custom_fields: customFields
     };
 
     console.log('Update payload:', JSON.stringify(updatePayload, null, 2));
@@ -277,20 +316,13 @@ async function createOrUpdateContact(accessToken, contactData) {
   } else {
     // Create new contact
     console.log('Creating new contact');
-    
+
     const createPayload = {
       given_name: firstName,
       family_name: lastName,
       email_addresses: [{ email: email, field: 'EMAIL1' }],
       opt_in_reason: emailConsent ? 'Destiny Cards Purchase' : null,
-      custom_fields: [
-        { id: CUSTOM_FIELDS.PRODUCT_ORDERED, content: product },
-        { id: CUSTOM_FIELDS.PRODUCT_NAME, content: productName },
-        { id: CUSTOM_FIELDS.PRODUCT_PRICE, content: productPrice.toString() },
-        { id: CUSTOM_FIELDS.SHIPPING_ADDRESS, content: shippingAddressFormatted },
-        { id: CUSTOM_FIELDS.PAYMENT_ID, content: paymentId },
-        { id: CUSTOM_FIELDS.ORDER_DATE, content: new Date().toISOString().split('T')[0] }
-      ]
+      custom_fields: customFields
     };
 
     console.log('Create payload:', JSON.stringify(createPayload, null, 2));
@@ -320,9 +352,9 @@ async function createOrUpdateContact(accessToken, contactData) {
 }
 
 // Create tags for order tracking and automation
-async function createOrderTags(accessToken, product, paymentId) {
-  console.log('Creating order tags for product:', product);
-  
+async function createOrderTags(accessToken, cartItems, paymentId, hasPreOrder) {
+  console.log('Creating order tags for cart items:', cartItems);
+
   const tagIds = [];
 
   // Main trigger tag for Keap automation
@@ -331,14 +363,41 @@ async function createOrderTags(accessToken, product, paymentId) {
   tagIds.push(mainTag.id);
   console.log('Main trigger tag created:', mainTag.id);
 
-  // Product-specific tag
-  const productTagName = product === 'cards-only' 
-    ? 'Destiny Cards - Cards Only' 
-    : 'Destiny Cards - Cards + Book';
-  console.log('Creating product tag:', productTagName);
-  const productTag = await createTag(accessToken, productTagName);
-  tagIds.push(productTag.id);
-  console.log('Product tag created:', productTag.id);
+  // Product-specific tags for each item in cart
+  for (const item of cartItems) {
+    let productTagName;
+    if (item.productId === 'cards-only') {
+      productTagName = 'Destiny Cards - Cards Only';
+    } else if (item.productId === 'cards-book-bundle') {
+      productTagName = 'Destiny Cards - Cards + Book Bundle';
+    } else {
+      productTagName = `Destiny Cards - ${item.productName}`;
+    }
+    console.log('Creating product tag:', productTagName);
+    const productTag = await createTag(accessToken, productTagName);
+    tagIds.push(productTag.id);
+    console.log('Product tag created:', productTag.id);
+  }
+
+  // Pre-order tag if applicable
+  if (hasPreOrder) {
+    console.log('Creating pre-order tag');
+    const preOrderTag = await createTag(accessToken, 'Destiny Cards - Pre-Order (Book Ships March 2025)');
+    tagIds.push(preOrderTag.id);
+    console.log('Pre-order tag created:', preOrderTag.id);
+
+    // Tag for pending book shipment - used for automation when book is ready
+    const pendingBookTag = await createTag(accessToken, 'Destiny Cards - Pending Book Shipment');
+    tagIds.push(pendingBookTag.id);
+    console.log('Pending book shipment tag created:', pendingBookTag.id);
+  }
+
+  // Shipping status tags - these will be used by automation
+  // When you ship, you'll apply "Shipped - Cards" or "Shipped - Book" tags
+  console.log('Creating shipping status tags');
+  const awaitingShipmentTag = await createTag(accessToken, 'Destiny Cards - Awaiting Shipment');
+  tagIds.push(awaitingShipmentTag.id);
+  console.log('Awaiting shipment tag created:', awaitingShipmentTag.id);
 
   // Payment reference tag
   console.log('Creating payment reference tag');

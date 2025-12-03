@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Complete - Destiny Cards</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .success-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            background: linear-gradient(180deg, var(--background-light) 0%, white 100%);
+        }
+
+        .success-card {
+            background: white;
+            border-radius: 20px;
+            padding: 50px 40px;
+            max-width: 600px;
+            text-align: center;
+            box-shadow: var(--shadow-large);
+            border-top: 5px solid var(--accent-gold);
+        }
+
+        .success-icon {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 30px;
+            animation: scaleIn 0.5s ease;
+        }
+
+        @keyframes scaleIn {
+            from { transform: scale(0); }
+            to { transform: scale(1); }
+        }
+
+        .success-icon svg {
+            width: 40px;
+            height: 40px;
+            stroke: white;
+            stroke-width: 3;
+        }
+
+        .success-card h1 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+            font-size: 2em;
+        }
+
+        .success-card .subtitle {
+            color: var(--text-light);
+            font-size: 1.15em;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+
+        .order-details {
+            background: var(--background-light);
+            border-radius: 12px;
+            padding: 25px;
+            margin: 30px 0;
+            text-align: left;
+        }
+
+        .order-details h3 {
+            margin: 0 0 15px 0;
+            color: var(--primary-dark);
+            font-size: 1.1em;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: var(--text-light);
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+
+        .shipping-note {
+            background: linear-gradient(135deg, #fff9e6 0%, #fffaed 100%);
+            border-left: 4px solid var(--accent-gold);
+            padding: 15px 20px;
+            border-radius: 0 8px 8px 0;
+            margin: 25px 0;
+            text-align: left;
+        }
+
+        .shipping-note strong {
+            color: var(--primary-dark);
+        }
+
+        .next-steps {
+            text-align: left;
+            margin: 30px 0;
+        }
+
+        .next-steps h3 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+        }
+
+        .next-steps ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .next-steps li {
+            padding: 10px 0 10px 30px;
+            position: relative;
+            color: var(--text-dark);
+        }
+
+        .next-steps li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #10b981;
+            font-weight: bold;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: var(--primary-mid);
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        .back-link:hover {
+            color: var(--primary-dark);
+        }
+
+        .loading-state {
+            padding: 60px 20px;
+        }
+
+        .loading-state .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-light);
+            border-top-color: var(--primary-light);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="success-container">
+        <div class="success-card">
+            <div id="loading-state" class="loading-state">
+                <div class="loading-spinner"></div>
+                <p>Confirming your order...</p>
+            </div>
+
+            <div id="success-content" style="display: none;">
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                </div>
+
+                <h1>Thank You for Your Order!</h1>
+                <p class="subtitle">Your Destiny Cards are on their way to transforming your perspective.</p>
+
+                <div class="order-details">
+                    <h3>Order Confirmation</h3>
+                    <div class="detail-row">
+                        <span class="detail-label">Order Number:</span>
+                        <span class="detail-value" id="order-number">—</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Email:</span>
+                        <span class="detail-value" id="customer-email">—</span>
+                    </div>
+                </div>
+
+                <div id="preorder-note" class="shipping-note" style="display: none;">
+                    <strong>Pre-Order Note:</strong> Your Destiny Cards will ship within 3-5 business days.
+                    The "Rules To Live By (But Not Believe)" book will ship separately in March 2025.
+                    You'll receive tracking emails for each shipment.
+                </div>
+
+                <div class="next-steps">
+                    <h3>What Happens Next</h3>
+                    <ul>
+                        <li>Check your email for order confirmation and receipt</li>
+                        <li>You'll receive a shipping notification with tracking when your order ships</li>
+                        <li>Your Destiny Cards will arrive within 5-7 business days (US)</li>
+                    </ul>
+                </div>
+
+                <a href="/" class="back-link">← Return to Destiny Cards</a>
+            </div>
+
+            <div id="error-content" style="display: none;">
+                <h1>Something went wrong</h1>
+                <p class="subtitle">We couldn't confirm your order status. Please check your email for confirmation or contact support.</p>
+                <a href="/" class="back-link">← Return to Destiny Cards</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Get session ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session_id');
+
+        async function checkOrderStatus() {
+            if (!sessionId) {
+                showError();
+                return;
+            }
+
+            try {
+                // For now, just show success (the webhook handles the actual order processing)
+                // In production, you could verify the session status via an API call
+                showSuccess();
+
+                // Set order number from session ID (last 8 chars)
+                document.getElementById('order-number').textContent = sessionId.slice(-8).toUpperCase();
+
+                // Check if this was a pre-order (could be passed via URL param or session)
+                const hasPreOrder = urlParams.get('preorder') === 'true';
+                if (hasPreOrder) {
+                    document.getElementById('preorder-note').style.display = 'block';
+                }
+
+            } catch (error) {
+                console.error('Error checking order status:', error);
+                showError();
+            }
+        }
+
+        function showSuccess() {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('success-content').style.display = 'block';
+        }
+
+        function showError() {
+            document.getElementById('loading-state').style.display = 'none';
+            document.getElementById('error-content').style.display = 'block';
+        }
+
+        // Check order status on page load
+        checkOrderStatus();
+    </script>
+</body>
+</html>

@@ -1,0 +1,343 @@
+// netlify/functions/stripe-webhook.js
+// Handles Stripe webhooks for order fulfillment and Keap integration
+
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+
+exports.handler = async (event, context) => {
+  if (event.httpMethod !== 'POST') {
+    return { statusCode: 405, body: 'Method not allowed' };
+  }
+
+  const sig = event.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let stripeEvent;
+
+  try {
+    // Verify webhook signature
+    stripeEvent = stripe.webhooks.constructEvent(
+      event.body,
+      sig,
+      webhookSecret
+    );
+  } catch (err) {
+    console.error('Webhook signature verification failed:', err.message);
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: `Webhook Error: ${err.message}` })
+    };
+  }
+
+  // Handle the event
+  try {
+    switch (stripeEvent.type) {
+      case 'checkout.session.completed':
+        await handleCheckoutComplete(stripeEvent.data.object);
+        break;
+
+      case 'checkout.session.async_payment_succeeded':
+        await handleCheckoutComplete(stripeEvent.data.object);
+        break;
+
+      case 'checkout.session.async_payment_failed':
+        console.log('Payment failed for session:', stripeEvent.data.object.id);
+        break;
+
+      default:
+        console.log(`Unhandled event type: ${stripeEvent.type}`);
+    }
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ received: true })
+    };
+
+  } catch (error) {
+    console.error('Webhook handler error:', error);
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Webhook handler failed' })
+    };
+  }
+};
+
+async function handleCheckoutComplete(session) {
+  console.log('Processing completed checkout:', session.id);
+
+  // Extract data from session
+  const customerEmail = session.customer_details?.email;
+  const customerName = session.customer_details?.name || '';
+  const shippingAddress = session.shipping_details?.address;
+  const shippingName = session.shipping_details?.name;
+  const metadata = session.metadata || {};
+
+  // Parse cart items from metadata
+  let cartItems = [];
+  try {
+    cartItems = JSON.parse(metadata.cartItems || '[]');
+  } catch (e) {
+    console.error('Failed to parse cart items:', e);
+  }
+
+  const hasPreOrder = metadata.hasPreOrder === 'true';
+  const emailConsent = metadata.emailConsent === 'true';
+
+  // Split name into first/last
+  const nameParts = customerName.split(' ');
+  const firstName = nameParts[0] || '';
+  const lastName = nameParts.slice(1).join(' ') || '';
+
+  // Integrate with Keap
+  try {
+    await integrateWithKeap({
+      firstName,
+      lastName,
+      email: customerEmail,
+      emailConsent,
+      cartItems,
+      shippingAddress: shippingAddress ? {
+        line1: shippingAddress.line1,
+        line2: shippingAddress.line2 || '',
+        city: shippingAddress.city,
+        state: shippingAddress.state,
+        postalCode: shippingAddress.postal_code,
+        country: shippingAddress.country
+      } : null,
+      paymentId: session.payment_intent,
+      amountPaid: session.amount_total / 100,
+      hasPreOrder
+    });
+    console.log('Keap integration successful');
+  } catch (keapError) {
+    console.error('Keap integration failed:', keapError);
+    // Don't throw - payment succeeded, we just log the Keap failure
+  }
+}
+
+// Keap integration (same as before, but triggered by webhook)
+async function integrateWithKeap(data) {
+  const {
+    firstName,
+    lastName,
+    email,
+    emailConsent,
+    cartItems,
+    shippingAddress,
+    paymentId,
+    amountPaid,
+    hasPreOrder
+  } = data;
+
+  const accessToken = process.env.KEAP_ACCESS_TOKEN;
+
+  if (!accessToken) {
+    throw new Error('Keap access token not configured');
+  }
+
+  // Format shipping address
+  const shippingAddressFormatted = shippingAddress
+    ? `${shippingAddress.line1}${shippingAddress.line2 ? '\n' + shippingAddress.line2 : ''}\n${shippingAddress.city}, ${shippingAddress.state} ${shippingAddress.postalCode}\n${shippingAddress.country}`
+    : 'Not provided';
+
+  // Build order summary
+  const orderSummary = cartItems.map(item =>
+    `${item.quantity}x ${item.productName}`
+  ).join('\n');
+
+  const totalPrice = cartItems.reduce((sum, item) =>
+    sum + (item.productPrice * item.quantity), 0
+  );
+
+  const productIds = cartItems.map(item => item.productId).join(', ');
+
+  // Custom field IDs - update these with your actual Keap field IDs
+  const CUSTOM_FIELDS = {
+    PRODUCT_ORDERED: 291,
+    ORDER_SUMMARY: 293,
+    PRODUCT_PRICE: 295,
+    SHIPPING_ADDRESS: 297,
+    PAYMENT_ID: 299,
+    ORDER_DATE: 301,
+    CARDS_TRACKING_NUMBER: 303,
+    CARDS_SHIPPED_DATE: 305,
+    BOOK_TRACKING_NUMBER: 307,
+    BOOK_SHIPPED_DATE: 309,
+    HAS_PREORDER: 311
+  };
+
+  // Search for existing contact
+  const searchResponse = await fetch(
+    `https://api.infusionsoft.com/crm/rest/v1/contacts?email=${encodeURIComponent(email)}`,
+    {
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  if (!searchResponse.ok) {
+    throw new Error(`Contact search failed: ${searchResponse.status}`);
+  }
+
+  const searchData = await searchResponse.json();
+
+  const customFields = [
+    { id: CUSTOM_FIELDS.PRODUCT_ORDERED, content: productIds },
+    { id: CUSTOM_FIELDS.ORDER_SUMMARY, content: orderSummary },
+    { id: CUSTOM_FIELDS.PRODUCT_PRICE, content: totalPrice.toString() },
+    { id: CUSTOM_FIELDS.SHIPPING_ADDRESS, content: shippingAddressFormatted },
+    { id: CUSTOM_FIELDS.PAYMENT_ID, content: paymentId },
+    { id: CUSTOM_FIELDS.ORDER_DATE, content: new Date().toISOString().split('T')[0] },
+    { id: CUSTOM_FIELDS.HAS_PREORDER, content: hasPreOrder ? 'Yes' : 'No' }
+  ];
+
+  const contactPayload = {
+    given_name: firstName,
+    family_name: lastName,
+    email_addresses: [{ email: email, field: 'EMAIL1' }],
+    opt_in_reason: emailConsent ? 'Destiny Cards Purchase' : null,
+    custom_fields: customFields
+  };
+
+  let contactId;
+
+  if (searchData.contacts && searchData.contacts.length > 0) {
+    // Update existing contact
+    contactId = searchData.contacts[0].id;
+    const updateResponse = await fetch(
+      `https://api.infusionsoft.com/crm/rest/v1/contacts/${contactId}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(contactPayload)
+      }
+    );
+
+    if (!updateResponse.ok) {
+      throw new Error(`Contact update failed: ${updateResponse.status}`);
+    }
+  } else {
+    // Create new contact
+    const createResponse = await fetch(
+      'https://api.infusionsoft.com/crm/rest/v1/contacts',
+      {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(contactPayload)
+      }
+    );
+
+    if (!createResponse.ok) {
+      throw new Error(`Contact creation failed: ${createResponse.status}`);
+    }
+
+    const newContact = await createResponse.json();
+    contactId = newContact.id;
+  }
+
+  // Apply tags
+  const tags = [
+    'Destiny Cards - Order Received',
+    'Destiny Cards - 1st Edition',
+    'Destiny Cards - Awaiting Shipment'
+  ];
+
+  // Add product-specific tags
+  for (const item of cartItems) {
+    if (item.productId === 'cards-only') {
+      tags.push('Destiny Cards - Cards Only');
+    } else if (item.productId === 'cards-book-bundle') {
+      tags.push('Destiny Cards - Cards + Book Bundle');
+    }
+  }
+
+  // Add pre-order tags
+  if (hasPreOrder) {
+    tags.push('Destiny Cards - Pre-Order (Book Ships March 2025)');
+    tags.push('Destiny Cards - Pending Book Shipment');
+  }
+
+  // Add date tag
+  const orderDate = new Date().toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  tags.push(`Destiny Cards - ${orderDate}`);
+
+  // Apply each tag
+  for (const tagName of tags) {
+    try {
+      const tagId = await getOrCreateTag(accessToken, tagName);
+      await applyTagToContact(accessToken, contactId, tagId);
+    } catch (tagError) {
+      console.error(`Failed to apply tag "${tagName}":`, tagError);
+    }
+  }
+
+  return { success: true, contactId };
+}
+
+async function getOrCreateTag(accessToken, tagName) {
+  // Search for existing tag
+  const searchResponse = await fetch(
+    `https://api.infusionsoft.com/crm/rest/v1/tags?name=${encodeURIComponent(tagName)}`,
+    {
+      headers: { 'Authorization': `Bearer ${accessToken}` }
+    }
+  );
+
+  if (!searchResponse.ok) {
+    throw new Error(`Tag search failed: ${searchResponse.status}`);
+  }
+
+  const searchData = await searchResponse.json();
+
+  if (searchData.tags && searchData.tags.length > 0) {
+    return searchData.tags[0].id;
+  }
+
+  // Create new tag
+  const createResponse = await fetch(
+    'https://api.infusionsoft.com/crm/rest/v1/tags',
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        name: tagName,
+        description: `Auto-created for Destiny Cards - ${new Date().toISOString()}`
+      })
+    }
+  );
+
+  if (!createResponse.ok) {
+    throw new Error(`Tag creation failed: ${createResponse.status}`);
+  }
+
+  const newTag = await createResponse.json();
+  return newTag.id;
+}
+
+async function applyTagToContact(accessToken, contactId, tagId) {
+  const response = await fetch(
+    `https://api.infusionsoft.com/crm/rest/v1/contacts/${contactId}/tags`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ tagIds: [tagId] })
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Tag application failed: ${response.status}`);
+  }
+}
