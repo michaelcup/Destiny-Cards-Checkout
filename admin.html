@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Destiny Cards - Shipping Admin</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0a0f;
+      --bg-secondary: #12121a;
+      --bg-tertiary: #1a1a25;
+      --text-primary: #e8e6e3;
+      --text-secondary: #9a9590;
+      --accent: #c9a55c;
+      --accent-dim: #8a7340;
+      --success: #4a9c6d;
+      --error: #c54b4b;
+      --border: #2a2a35;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 500;
+      margin-bottom: 0.5rem;
+      color: var(--accent);
+    }
+
+    .subtitle {
+      color: var(--text-secondary);
+      margin-bottom: 2rem;
+      font-size: 0.9rem;
+    }
+
+    .auth-section, .main-section {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .main-section {
+      display: none;
+    }
+
+    .main-section.visible {
+      display: block;
+    }
+
+    label {
+      display: block;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-bottom: 0.5rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-primary);
+      font-family: inherit;
+      font-size: 1rem;
+      margin-bottom: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%239a9590' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.875rem 1.5rem;
+      background: var(--accent);
+      color: var(--bg-primary);
+      border: none;
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button:hover {
+      background: var(--accent-dim);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    button:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .message {
+      padding: 1rem;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+      display: none;
+    }
+
+    .message.visible {
+      display: block;
+    }
+
+    .message.success {
+      background: rgba(74, 156, 109, 0.15);
+      border: 1px solid var(--success);
+      color: var(--success);
+    }
+
+    .message.error {
+      background: rgba(197, 75, 75, 0.15);
+      border: 1px solid var(--error);
+      color: var(--error);
+    }
+
+    .recent-updates {
+      margin-top: 2rem;
+    }
+
+    .recent-updates h2 {
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 1rem;
+    }
+
+    .update-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .update-item .email {
+      color: var(--text-primary);
+    }
+
+    .update-item .tracking {
+      color: var(--accent);
+      font-family: monospace;
+    }
+
+    .update-item .type {
+      color: var(--text-secondary);
+      font-size: 0.75rem;
+      text-transform: uppercase;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Shipping Admin</h1>
+    <p class="subtitle">Update tracking numbers for Destiny Cards orders</p>
+
+    <div class="auth-section" id="authSection">
+      <label for="apiKey">Admin API Key</label>
+      <input type="password" id="apiKey" placeholder="Enter your admin key">
+      <button onclick="authenticate()">Authenticate</button>
+    </div>
+
+    <div class="main-section" id="mainSection">
+      <div class="message" id="message"></div>
+
+      <label for="email">Customer Email</label>
+      <input type="email" id="email" placeholder="customer@example.com">
+
+      <label for="shipmentType">Shipment Type</label>
+      <select id="shipmentType">
+        <option value="cards">Destiny Cards</option>
+        <option value="book">Rules To Live By (Book)</option>
+      </select>
+
+      <label for="trackingNumber">Tracking Number</label>
+      <input type="text" id="trackingNumber" placeholder="e.g., 1Z999AA10123456784">
+
+      <button onclick="updateTracking()" id="submitBtn">Update Tracking</button>
+
+      <div class="recent-updates" id="recentUpdates">
+        <h2>Recent Updates (this session)</h2>
+        <div id="updatesList"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let adminKey = '';
+    const recentUpdates = [];
+
+    function authenticate() {
+      adminKey = document.getElementById('apiKey').value.trim();
+      if (adminKey) {
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('mainSection').classList.add('visible');
+        // Store in session
+        sessionStorage.setItem('adminKey', adminKey);
+      }
+    }
+
+    // Check for stored key on load
+    window.onload = function() {
+      const storedKey = sessionStorage.getItem('adminKey');
+      if (storedKey) {
+        adminKey = storedKey;
+        document.getElementById('authSection').style.display = 'none';
+        document.getElementById('mainSection').classList.add('visible');
+      }
+    };
+
+    async function updateTracking() {
+      const email = document.getElementById('email').value.trim();
+      const shipmentType = document.getElementById('shipmentType').value;
+      const trackingNumber = document.getElementById('trackingNumber').value.trim();
+      const btn = document.getElementById('submitBtn');
+      const msg = document.getElementById('message');
+
+      if (!email || !trackingNumber) {
+        showMessage('Please fill in all fields', 'error');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.textContent = 'Updating...';
+
+      try {
+        const response = await fetch('/.netlify/functions/update-tracking', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${adminKey}`
+          },
+          body: JSON.stringify({ email, shipmentType, trackingNumber })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showMessage(`Tracking updated for ${email}`, 'success');
+          addRecentUpdate(email, trackingNumber, shipmentType);
+          // Clear form
+          document.getElementById('email').value = '';
+          document.getElementById('trackingNumber').value = '';
+        } else {
+          showMessage(data.error || 'Update failed', 'error');
+        }
+      } catch (error) {
+        showMessage('Network error: ' + error.message, 'error');
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Update Tracking';
+    }
+
+    function showMessage(text, type) {
+      const msg = document.getElementById('message');
+      msg.textContent = text;
+      msg.className = `message visible ${type}`;
+      setTimeout(() => {
+        msg.classList.remove('visible');
+      }, 5000);
+    }
+
+    function addRecentUpdate(email, tracking, type) {
+      recentUpdates.unshift({ email, tracking, type, time: new Date() });
+      renderRecentUpdates();
+    }
+
+    function renderRecentUpdates() {
+      const list = document.getElementById('updatesList');
+      if (recentUpdates.length === 0) {
+        list.innerHTML = '<p style="color: var(--text-secondary); font-size: 0.85rem;">No updates yet</p>';
+        return;
+      }
+      list.innerHTML = recentUpdates.slice(0, 10).map(u => `
+        <div class="update-item">
+          <div>
+            <span class="email">${u.email}</span>
+            <span class="type">${u.type}</span>
+          </div>
+          <span class="tracking">${u.tracking}</span>
+        </div>
+      `).join('');
+    }
+
+    renderRecentUpdates();
+  </script>
+</body>
+</html>

@@ -1,7 +1,16 @@
 // netlify/functions/create-checkout-session.js
 // Creates a Stripe Checkout Session for embedded checkout
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Stripe = require('stripe');
+
+// Initialize Stripe lazily to ensure env vars are loaded
+function getStripe() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error('STRIPE_SECRET_KEY environment variable is not set. Please add it in Netlify Dashboard → Site Settings → Environment Variables');
+  }
+  return new Stripe(secretKey);
+}
 
 // Product configuration - matches frontend
 const PRODUCTS = {
@@ -65,6 +74,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    const stripe = getStripe();
     const { cartItems, customerEmail, emailConsent } = JSON.parse(event.body);
 
     if (!cartItems || cartItems.length === 0) {
@@ -104,7 +114,7 @@ exports.handler = async (event, context) => {
     const hasPreOrder = cartItems.some(item => PRODUCTS[item.productId]?.splitShipment);
 
     // Get or create shipping rates
-    const shippingOptions = await getOrCreateShippingRates();
+    const shippingOptions = await getOrCreateShippingRates(stripe);
 
     // Create the checkout session
     const session = await stripe.checkout.sessions.create({
@@ -160,7 +170,7 @@ exports.handler = async (event, context) => {
 };
 
 // Get existing shipping rates or create them
-async function getOrCreateShippingRates() {
+async function getOrCreateShippingRates(stripe) {
   try {
     // Try to fetch existing shipping rates
     const existingRates = await stripe.shippingRates.list({ active: true, limit: 10 });

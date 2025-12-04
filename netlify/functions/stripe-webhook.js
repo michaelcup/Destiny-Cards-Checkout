@@ -1,7 +1,15 @@
 // netlify/functions/stripe-webhook.js
 // Handles Stripe webhooks for order fulfillment and Keap integration
 
-const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
+const Stripe = require('stripe');
+
+function getStripe() {
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  if (!secretKey) {
+    throw new Error('STRIPE_SECRET_KEY not configured');
+  }
+  return new Stripe(secretKey);
+}
 
 exports.handler = async (event, context) => {
   if (event.httpMethod !== 'POST') {
@@ -15,6 +23,7 @@ exports.handler = async (event, context) => {
 
   try {
     // Verify webhook signature
+    const stripe = getStripe();
     stripeEvent = stripe.webhooks.constructEvent(
       event.body,
       sig,
