@@ -238,15 +238,26 @@
             }
 
             try {
-                // For now, just show success (the webhook handles the actual order processing)
-                // In production, you could verify the session status via an API call
+                // Fetch session details from our API
+                const response = await fetch(`/.netlify/functions/get-session?session_id=${encodeURIComponent(sessionId)}`);
+                const session = await response.json();
+
+                if (!response.ok || session.status !== 'complete') {
+                    throw new Error('Session not complete');
+                }
+
                 showSuccess();
 
                 // Set order number from session ID (last 8 chars)
                 document.getElementById('order-number').textContent = sessionId.slice(-8).toUpperCase();
 
-                // Check if this was a pre-order (could be passed via URL param or session)
-                const hasPreOrder = urlParams.get('preorder') === 'true';
+                // Set customer email
+                if (session.customer_email) {
+                    document.getElementById('customer-email').textContent = session.customer_email;
+                }
+
+                // Check if this was a pre-order
+                const hasPreOrder = session.metadata?.hasPreOrder === 'true' || urlParams.get('preorder') === 'true';
                 if (hasPreOrder) {
                     document.getElementById('preorder-note').style.display = 'block';
                 }
