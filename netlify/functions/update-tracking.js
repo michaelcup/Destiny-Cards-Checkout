@@ -83,10 +83,10 @@ async function updateTrackingInKeap(email, trackingNumber, shipmentType) {
 
   // Custom field IDs - must match your Keap setup
   const CUSTOM_FIELDS = {
-    CARDS_TRACKING_NUMBER: 303,
-    CARDS_SHIPPED_DATE: 305,
-    BOOK_TRACKING_NUMBER: 307,
-    BOOK_SHIPPED_DATE: 309
+    CARDS_TRACKING_NUMBER: 315,
+    CARDS_SHIPPED_DATE: 317,
+    BOOK_TRACKING_NUMBER: 319,
+    BOOK_SHIPPED_DATE: 321
   };
 
   // Find contact by email

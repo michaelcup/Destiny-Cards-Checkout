@@ -250,21 +250,19 @@ async function createOrUpdateContact(accessToken, contactData) {
   // Build product IDs string from cart
   const productIds = cartItems.map(item => item.productId).join(', ');
 
-  // Custom field IDs for Destiny Cards (you'll need to create these in Keap)
-  // These are placeholders - replace with actual IDs from your Keap instance
+  // Custom field IDs for Destiny Cards
   const CUSTOM_FIELDS = {
-    PRODUCT_ORDERED: 291,           // Text field: which product(s) ordered
-    ORDER_SUMMARY: 293,             // Text Area field: full order summary
-    PRODUCT_PRICE: 295,             // Number field: total price paid
-    SHIPPING_ADDRESS: 297,          // Text Area field: full shipping address
-    PAYMENT_ID: 299,                // Text field: Stripe payment ID
-    ORDER_DATE: 301,                // Date field: when order was placed
-    // NEW: Tracking number fields for shipping notifications
-    CARDS_TRACKING_NUMBER: 303,     // Text field: tracking number for cards shipment
-    CARDS_SHIPPED_DATE: 305,        // Date field: when cards were shipped
-    BOOK_TRACKING_NUMBER: 307,      // Text field: tracking number for book shipment (pre-orders)
-    BOOK_SHIPPED_DATE: 309,         // Date field: when book was shipped
-    HAS_PREORDER: 311               // Yes/No field: whether order includes pre-order items
+    PRODUCT_ORDERED: 303,           // Text field: which product(s) ordered
+    ORDER_SUMMARY: 305,             // Text Area field: full order summary
+    PRODUCT_PRICE: 307,             // Number field: total price paid
+    SHIPPING_ADDRESS: 309,          // Text Area field: full shipping address
+    PAYMENT_ID: 311,                // Text field: Stripe payment ID
+    ORDER_DATE: 313,                // Date field: when order was placed
+    CARDS_TRACKING_NUMBER: 315,     // Text field: tracking number for cards shipment
+    CARDS_SHIPPED_DATE: 317,        // Date field: when cards were shipped
+    BOOK_TRACKING_NUMBER: 319,      // Text field: tracking number for book shipment (pre-orders)
+    BOOK_SHIPPED_DATE: 321,         // Date field: when book was shipped
+    HAS_PREORDER: 323               // Yes/No field: whether order includes pre-order items
   };
 
   // Build custom fields array

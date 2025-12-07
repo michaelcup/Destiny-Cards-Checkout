@@ -161,17 +161,17 @@ async function integrateWithKeap(data) {
 
   // Custom field IDs - update these with your actual Keap field IDs
   const CUSTOM_FIELDS = {
-    PRODUCT_ORDERED: 291,
-    ORDER_SUMMARY: 293,
-    PRODUCT_PRICE: 295,
-    SHIPPING_ADDRESS: 297,
-    PAYMENT_ID: 299,
-    ORDER_DATE: 301,
-    CARDS_TRACKING_NUMBER: 303,
-    CARDS_SHIPPED_DATE: 305,
-    BOOK_TRACKING_NUMBER: 307,
-    BOOK_SHIPPED_DATE: 309,
-    HAS_PREORDER: 311
+    PRODUCT_ORDERED: 303,
+    ORDER_SUMMARY: 305,
+    PRODUCT_PRICE: 307,
+    SHIPPING_ADDRESS: 309,
+    PAYMENT_ID: 311,
+    ORDER_DATE: 313,
+    CARDS_TRACKING_NUMBER: 315,
+    CARDS_SHIPPED_DATE: 317,
+    BOOK_TRACKING_NUMBER: 319,
+    BOOK_SHIPPED_DATE: 321,
+    HAS_PREORDER: 323
   };
 
   // Search for existing contact
