@@ -5,6 +5,29 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://js.stripe.com https://m.stripe.network; style-src 'self' 'unsafe-inline' https://m.stripe.network; frame-src 'self' https://js.stripe.com https://m.stripe.network; connect-src 'self' https://api.stripe.com https://m.stripe.network https://api.infusionsoft.com; img-src 'self' data: https:;">
     <title>Destiny Cards - Limited Edition Pre-Order</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Limited Edition 1st Printing Destiny Cards - Only 75 decks available. A powerful tool from The Paradox Process to shift your perspective and get unstuck. 25+ Functional Philosophy cards and 10+ Resourceful State cards.">
+    <meta name="keywords" content="Destiny Cards, Paradox Process, transformation, personal development, card deck, mindset, perspective shift">
+    <meta name="author" content="Thomas M. Jones - The Paradox Process">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="product">
+    <meta property="og:title" content="Destiny Cards - Limited Edition 1st Printing">
+    <meta property="og:description" content="A powerful tool to shift your perspective and get unstuck. Only 75 decks available. From The Paradox Process.">
+    <meta property="og:image" content="cards.png">
+    <meta property="og:url" content="https://destinycards.paradoxprocess.org">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Destiny Cards - Limited Edition 1st Printing">
+    <meta name="twitter:description" content="A powerful tool to shift your perspective and get unstuck. Only 75 decks available.">
+    <meta name="twitter:image" content="cards.png">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="favicon.png">
+
     <link rel="stylesheet" href="styles.css">
     <script src="https://js.stripe.com/v3/"></script>
 </head>
@@ -56,14 +79,20 @@
                     </div>
                 </div>
 
-                <div class="product-option" data-product="cards-book-bundle" data-price="60">
+                <div class="product-option" data-product="cards-book-bundle" data-price="55">
                     <div class="badge">Pre-Order Bundle</div>
-                    <div class="product-image">
-                        <img src="cards.png" alt="Destiny Cards + Rules To Live By Bundle">
+                    <div class="product-image-bundle">
+                        <div class="bundle-item">
+                            <img src="cards.png" alt="Destiny Cards Deck">
+                        </div>
+                        <span class="bundle-plus">+</span>
+                        <div class="bundle-item">
+                            <img src="RulesCover.jpg" alt="Rules To Live By Book">
+                        </div>
                     </div>
                     <div class="product-info">
                         <h3>Destiny Cards + Rules To Live By (But Not Believe) Pre-Order</h3>
-                        <div class="price">$60</div>
+                        <div class="price">$55</div>
                         <ul class="features">
                             <li>Complete 1st Edition Destiny Cards deck</li>
                             <li>25+ Functional Philosophy cards</li>
@@ -88,7 +117,7 @@
             </div>
         </div>
 
-        <div class="content-section">
+        <div class="content-section reveal">
             <h2>Two Types of Cards. One Powerful System.</h2>
             <p><strong>Functional Philosophy Cards</strong> offer you 25+ viewpoints that cut through your stuck stories and reveal what you haven't been able to see. These aren't affirmations. They're lenses, ways of looking at your situation that create actual shifts in how you feel and what becomes possible.</p>
             <p><strong>Resourceful State Cards</strong> give you access to the emotional clarity you need to make those shifts real. States like empathy, confidence, gratitude, and courage that move you from fight-flight-freeze into rest-receive-allow.</p>
@@ -96,36 +125,64 @@
         </div>
 
         <div class="how-it-works">
-            <h2>How It Works:</h2>
-            <p class="intro">It's simple. Deceptively simple.</p>
-            <ol>
-                <li>Identify the issue that's got you stuck</li>
-                <li>Pull a Destiny Card</li>
-                <li>Pull a Resourceful State Card</li>
-                <li>Look at your situation through both lenses</li>
-                <li>Notice what shifts</li>
-            </ol>
-            <p>That's it. No belief required. Just willingness.</p>
-            <p>You're not being asked to adopt a new worldview or convince yourself of anything. You're simply using a tool—the same way engineers use imaginary numbers to solve real problems. These cards work whether you believe in them or not.</p>
+            <div class="how-it-works-header">
+                <h2>How It Works:</h2>
+                <p class="intro">It's simple. Deceptively simple.</p>
+            </div>
+
+            <div class="steps-container">
+                <ol class="steps-list">
+                    <li class="step-item">
+                        <div class="step-content">
+                            <span class="step-text">Identify the issue that's got you stuck</span>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-content">
+                            <span class="step-text">Pull a Destiny Card</span>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-content">
+                            <span class="step-text">Pull a Resourceful State Card</span>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-content">
+                            <span class="step-text">Look at your situation through both lenses</span>
+                        </div>
+                    </li>
+                    <li class="step-item">
+                        <div class="step-content">
+                            <span class="step-text">Notice what shifts</span>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+
+            <div class="how-it-works-footer">
+                <p class="closing-statement">That's it. No belief required. Just willingness.</p>
+                <p class="explanation">You're not being asked to adopt a new worldview or convince yourself of anything. You're simply using a tool—the same way engineers use imaginary numbers to solve real problems. These cards work whether you believe in them or not.</p>
+            </div>
         </div>
 
-        <div class="differentiation">
+        <div class="differentiation reveal-left">
             <h2>This Isn't Like Other Card Decks</h2>
             <p>Most oracle or affirmation decks give you pretty words that make you feel good for five minutes. Then you're right back where you started. <span class="emphasis">Destiny Cards are different.</span></p>
             <p>They're built on the Paradox Process. A methodology with over 40 years of proven results with CEOs, award-winning performers, psychologists, and people just like you who were tired of being stuck.</p>
             <p>These cards don't just comfort you. They challenge you. They show you the point of resistance where actual transformation lives and they give you the resourceful state you need to work through it.</p>
         </div>
 
-        <div class="limited-edition-banner">
-            <h2>Limited Edition. 1st Edition. Only 75 Decks Available.</h2>
+        <div class="limited-edition-banner reveal-scale">
+            <h2>Limited Edition. 1st Edition. Only <span class="count-up" data-target="75">75</span> Decks Available.</h2>
             <p>This is the first printing of Destiny Cards, and we're keeping it small. Once these 75 decks are gone, they're gone.</p>
             <p>Why so few? Because this isn't about mass production. It's about getting a powerful tool into the hands of people who will actually use it. People who are serious about getting out of their own way.</p>
             <p class="emphasis">If you've been doing the work or you're ready to start, this deck belongs with you.</p>
         </div>
 
-        <div class="who-this-is-for">
+        <div class="who-this-is-for reveal">
             <h2>Destiny Cards Are For You If...</h2>
-            <ul>
+            <ul class="reveal-stagger">
                 <li>You're tired of your negative feelings running the show</li>
                 <li>You've been stuck on the same issue for too long</li>
                 <li>You want a tool that actually works, not just another pretty affirmation</li>
@@ -136,32 +193,32 @@
             <p class="emphasis">This deck isn't for everyone. It's for people who want real change, not just temporary relief.</p>
         </div>
 
-        <div class="promise-section">
+        <div class="promise-section reveal-right">
             <h2>The Paradox Process Promise</h2>
             <p>The mind isn't fixed. The beliefs you have now? They were programmed since childhood to protect a version of you that no longer exists. Those outdated protections are keeping you from the very things you want.</p>
             <p>Destiny Cards give you a way to interrupt those patterns and install new ones. Not through force. Not through repetition. But through perspective shifts that hit at the subconscious level.</p>
             <p class="emphasis">That's what makes the Paradox Process different. And that's why this deck works.</p>
         </div>
 
-        <div class="testimonials">
+        <div class="testimonials reveal">
             <h2>What People Are Saying</h2>
-            <div class="testimonial-grid">
+            <div class="testimonial-grid reveal-stagger">
                 <div class="testimonial">
-                    <p class="testimonial-text">[Testimonial will be added here]</p>
-                    <p class="testimonial-author">— Coming Soon</p>
+                    <p class="testimonial-text">I use these cards everyday! I use them to get a different perspective on my issue. Which helps reframe it so I can work through it. These are inspirational!</p>
+                    <p class="testimonial-author">Andrea</p>
                 </div>
                 <div class="testimonial">
-                    <p class="testimonial-text">[Testimonial will be added here]</p>
-                    <p class="testimonial-author">— Coming Soon</p>
+                    <p class="testimonial-text">I love these! They work every time I pull a card and it fits perfectly to the issue!</p>
+                    <p class="testimonial-author">Ariel</p>
                 </div>
                 <div class="testimonial">
-                    <p class="testimonial-text">[Testimonial will be added here]</p>
-                    <p class="testimonial-author">— Coming Soon</p>
+                    <p class="testimonial-text">These cards are so useful! They help me challenge myself and push me to think in different ways. I've found them really useful for getting myself out of funks and pushing myself to grow.</p>
+                    <p class="testimonial-author">Michael</p>
                 </div>
             </div>
         </div>
-        
-        <div class="truth-section">
+
+        <div class="truth-section reveal">
             <h2>The Truth About Tools</h2>
             <p>You don't have to believe imaginary numbers exist to use them to build bridges and design technology. You just have to be willing to use the tool.</p>
             <p>Destiny Cards work the same way.</p>
@@ -173,6 +230,20 @@
 
         <div class="footer">
             <p><em>Created by Thomas M. Jones, founder of The Paradox Process. With over 40 years of experience guiding CEOs, award-winning performers, and change-makers toward their dreams, Thomas brings practical tools for transformation that actually work.</em></p>
+            <div class="footer-trust">
+                <div class="trust-badge">
+                    <span class="trust-icon">🔒</span>
+                    <span>Secure Checkout</span>
+                </div>
+                <div class="trust-badge">
+                    <span class="trust-icon">📦</span>
+                    <span>Fast Shipping</span>
+                </div>
+                <div class="trust-badge">
+                    <span class="trust-icon">✨</span>
+                    <span>Limited Edition</span>
+                </div>
+            </div>
         </div>
 
         <!-- Modal Overlay for Checkout -->
@@ -233,28 +304,11 @@
             </div>
         </div>
 
-    <!-- Sticky Bottom Checkout Bar -->
-    <div class="bottom-checkout-bar" id="bottom-checkout-bar">
-        <div class="checkout-bar-content">
-            <div class="checkout-bar-info">
-                <div class="checkout-bar-product">
-                    <span class="checkout-bar-product-name" id="bar-product-name">Destiny Cards</span>
-                    <span class="checkout-bar-product-price" id="bar-product-price">1 × $20</span>
-                </div>
-                <div class="checkout-bar-shipping">
-                    <span class="checkout-bar-shipping-label">Shipping:</span>
-                    <span class="checkout-bar-shipping-cost" id="bar-shipping-cost">$5</span>
-                </div>
-                <div class="checkout-bar-total">
-                    <span class="checkout-bar-total-label">Total:</span>
-                    <span class="checkout-bar-total-amount" id="bar-total-amount">$25</span>
-                </div>
-            </div>
-            <button class="checkout-bar-button" id="bar-checkout-button">
-                Proceed to Checkout
-            </button>
-        </div>
-    </div>
+    <!-- Floating Checkout Button -->
+    <button class="floating-checkout" id="floating-checkout">
+        <span class="floating-checkout-text">Checkout</span>
+        <span class="floating-checkout-price" id="floating-checkout-price">$20</span>
+    </button>
     <script>
         // ============================================
         // PRODUCT CONFIGURATION
@@ -269,7 +323,7 @@
             },
             'cards-book-bundle': {
                 name: 'Destiny Cards + Rules To Live By Pre-Order',
-                price: 60,
+                price: 55,
                 description: 'Destiny Cards deck + Rules To Live By (But Not Believe) book pre-order',
                 shipsNow: false,
                 splitShipment: true,
@@ -283,7 +337,7 @@
         };
 
         // Stripe publishable key
-        const STRIPE_PUBLIC_KEY = 'pk_test_51S9vybJaTakfgkML3IMec5kLbEDf2K4V5A05cKItlGe8sNggczJwdaKe4JmI9f2RXGI1jlT6GD467vJyYFciSKxC00CLjz8vcM';
+        const STRIPE_PUBLIC_KEY = 'pk_live_dFrxAQ4Tim89omgCJFwGubyj';
 
         // Initialize Stripe
         let stripe;
@@ -297,7 +351,7 @@
 
         const modal = document.getElementById('checkout-modal');
         const closeModalBtn = document.getElementById('close-modal');
-        const barCheckoutButton = document.getElementById('bar-checkout-button');
+        const floatingCheckout = document.getElementById('floating-checkout');
         let currentCheckout = null;
 
         function openModal() {
@@ -323,7 +377,7 @@
             document.getElementById('checkout-step-payment').classList.toggle('hidden', step !== 'payment');
         }
 
-        barCheckoutButton.addEventListener('click', openModal);
+        floatingCheckout.addEventListener('click', openModal);
         closeModalBtn.addEventListener('click', closeModal);
         modal.addEventListener('click', (e) => {
             if (e.target === modal) closeModal();
@@ -474,19 +528,19 @@
         function addToCart(productId) {
             productQuantities[productId] = 1;
             updateProductDisplay(productId);
-            updateBottomBar();
+            updateFloatingCheckout();
         }
 
         function increaseQuantity(productId) {
             productQuantities[productId]++;
             updateProductDisplay(productId);
-            updateBottomBar();
+            updateFloatingCheckout();
         }
 
         function decreaseQuantity(productId) {
             productQuantities[productId]--;
             updateProductDisplay(productId);
-            updateBottomBar();
+            updateFloatingCheckout();
         }
 
         function updateProductDisplay(productId) {
@@ -509,10 +563,8 @@
         }
 
         // ============================================
-        // BOTTOM BAR FUNCTIONALITY
+        // FLOATING CHECKOUT FUNCTIONALITY
         // ============================================
-
-        const bottomBar = document.getElementById('bottom-checkout-bar');
 
         function getTotalQuantity() {
             return Object.values(productQuantities).reduce((sum, qty) => sum + qty, 0);
@@ -528,42 +580,73 @@
             return subtotal;
         }
 
-        function toggleBottomBar(show) {
-            bottomBar.classList.toggle('visible', show);
-            document.body.classList.toggle('has-bottom-bar', show);
-        }
-
-        function updateBottomBar() {
+        function updateFloatingCheckout() {
             const totalQuantity = getTotalQuantity();
             const subtotal = getSubtotal();
 
             if (totalQuantity === 0) {
-                toggleBottomBar(false);
+                floatingCheckout.classList.remove('visible');
                 return;
             }
 
-            let productDescriptions = [];
-            let priceDescriptions = [];
-
-            for (const [productId, quantity] of Object.entries(productQuantities)) {
-                if (quantity > 0) {
-                    const product = PRODUCTS[productId];
-                    const shortName = productId === 'cards-book-bundle' ? 'Cards + Book' : product.name;
-                    productDescriptions.push(shortName);
-                    priceDescriptions.push(`${quantity} × $${product.price}`);
-                }
-            }
-
-            document.getElementById('bar-product-name').textContent = productDescriptions.join(', ');
-            document.getElementById('bar-product-price').textContent = priceDescriptions.join(' + ');
-            document.getElementById('bar-shipping-cost').textContent = 'Calculated at checkout';
-            document.getElementById('bar-total-amount').textContent = `$${subtotal}+`;
-
-            toggleBottomBar(true);
+            document.getElementById('floating-checkout-price').textContent = `$${subtotal}`;
+            floatingCheckout.classList.add('visible');
         }
 
         // Initialize
-        updateBottomBar();
+        updateFloatingCheckout();
+
+        // ============================================
+        // SCROLL-TRIGGERED ANIMATIONS
+        // ============================================
+
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('revealed');
+
+                    // Handle count-up animation for numbers
+                    const countUp = entry.target.querySelector('.count-up');
+                    if (countUp && !countUp.classList.contains('counted')) {
+                        countUp.classList.add('counted');
+                        animateCount(countUp);
+                    }
+                }
+            });
+        }, {
+            threshold: 0.15,
+            rootMargin: '0px 0px -50px 0px'
+        });
+
+        // Observe all reveal elements
+        document.querySelectorAll('.reveal, .reveal-left, .reveal-right, .reveal-scale, .reveal-stagger').forEach(el => {
+            revealObserver.observe(el);
+        });
+
+        // Count-up animation function
+        function animateCount(element) {
+            const target = parseInt(element.dataset.target) || 0;
+            const duration = 2000;
+            const start = 0;
+            const startTime = performance.now();
+
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing function (ease-out)
+                const easeOut = 1 - Math.pow(1 - progress, 3);
+                const current = Math.round(start + (target - start) * easeOut);
+
+                element.textContent = current;
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+
+            requestAnimationFrame(update);
+        }
     </script>
 </body>
 </html>

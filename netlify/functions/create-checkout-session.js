@@ -23,7 +23,7 @@ const PRODUCTS = {
   'cards-book-bundle': {
     name: 'Destiny Cards + Rules To Live By Pre-Order Bundle',
     description: 'Destiny Cards deck (ships now) + "Rules To Live By (But Not Believe)" book pre-order (ships March 2025). Items ship separately.',
-    price: 6000, // in cents
+    price: 5500, // in cents
     shipsNow: false,
     splitShipment: true
   }
