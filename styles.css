@@ -4,19 +4,22 @@
    ================================ */
 
 :root {
-    /* Typography System - Brand Font */
+    /* Typography System - Brand Fonts */
     --font-primary: 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-secondary: 'Gibson', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-tertiary: 'Gibson Light', 'Gibson', 'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif;
 
     /* Color System - Brand Blues */
-    --primary-dark: #03045e;
-    --primary-mid: #0077b6;
-    --primary-light: #48cae4;
-    --primary-gradient: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary-mid) 50%, var(--primary-light) 100%);
+    --primary-dark: #1D7AAF;
+    --primary-mid: #29ABE2;
+    --primary-light: #A1D7F7;
+    --primary-solid: #29ABE2;
+    --primary-gradient: var(--primary-solid);
 
-    /* Accent colors - Brand Gold */
-    --accent-gold: #f8cf46;
-    --accent-gold-light: #fae17d;
-    --accent-gold-dark: #d4a520;
+    /* Accent colors - Brand Orange */
+    --accent-gold: #FF9900;
+    --accent-gold-light: #FFB333;
+    --accent-gold-dark: #E68A00;
 
     /* Text colors */
     --text-dark: #1a1a2e;
@@ -27,8 +30,8 @@
     /* Backgrounds */
     --background-white: #ffffff;
     --background-light: #f8fafc;
-    --background-cream: #fffbf0;
-    --background-warm: #fefdfb;
+    --background-cream: #FFFDF3;
+    --background-warm: #FFFDF3;
 
     /* Borders */
     --border-light: #e5e7eb;
@@ -36,11 +39,11 @@
     --border-focus: var(--primary-light);
 
     /* Shadows - Refined for depth */
-    --shadow-soft: 0 2px 8px rgba(3, 4, 94, 0.06), 0 1px 2px rgba(3, 4, 94, 0.04);
-    --shadow-medium: 0 8px 24px rgba(3, 4, 94, 0.1), 0 2px 8px rgba(3, 4, 94, 0.06);
-    --shadow-large: 0 16px 48px rgba(3, 4, 94, 0.12), 0 8px 24px rgba(3, 4, 94, 0.08);
-    --shadow-glow: 0 0 40px rgba(248, 207, 70, 0.3);
-    --shadow-glow-strong: 0 0 60px rgba(248, 207, 70, 0.5);
+    --shadow-soft: 0 2px 8px rgba(29, 122, 175, 0.08), 0 1px 2px rgba(29, 122, 175, 0.05);
+    --shadow-medium: 0 8px 24px rgba(29, 122, 175, 0.12), 0 2px 8px rgba(29, 122, 175, 0.08);
+    --shadow-large: 0 16px 48px rgba(29, 122, 175, 0.15), 0 8px 24px rgba(29, 122, 175, 0.1);
+    --shadow-glow: 0 0 40px rgba(255, 153, 0, 0.3);
+    --shadow-glow-strong: 0 0 60px rgba(255, 153, 0, 0.5);
 
     /* Layout - Mobile First */
     --section-padding: 48px 24px;
@@ -51,6 +54,48 @@
     --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-medium: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ================================
+   ACCESSIBILITY
+   ================================ */
+
+/* Skip Link - visible on focus for keyboard users */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--primary-dark);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 0 0 8px 8px;
+    font-weight: 600;
+    font-size: 0.9em;
+    z-index: 9999;
+    transition: top var(--transition-fast);
+    text-decoration: none;
+}
+
+.skip-link:focus {
+    top: 0;
+    outline: 2px solid var(--accent-gold);
+    outline-offset: 2px;
+}
+
+/* Enhanced focus states for all interactive elements */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+    outline: 2px solid var(--accent-gold);
+    outline-offset: 2px;
+}
+
+/* Remove default focus outline when using mouse */
+:focus:not(:focus-visible) {
+    outline: none;
 }
 
 /* ================================
@@ -151,11 +196,155 @@ p {
 }
 
 /* ================================
+   TOP NAVIGATION BAR
+   ================================ */
+
+.top-nav {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1100;
+    background: var(--primary-dark);
+    padding: 10px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.nav-back {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    text-decoration: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    transition: all var(--transition-fast);
+    background: rgba(255, 255, 255, 0.1);
+    border: none;
+}
+
+.nav-back:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.nav-back svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    stroke-width: 2.5;
+    fill: none;
+}
+
+.nav-checkout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.nav-checkout-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.nav-checkout-btn:active:not(:disabled) {
+    transform: scale(0.95);
+}
+
+.nav-checkout-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.nav-checkout-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.nav-checkout-icon svg {
+    width: 20px;
+    height: 20px;
+    stroke: white;
+    stroke-width: 2;
+    fill: none;
+}
+
+.nav-checkout-badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: var(--accent-gold);
+    color: var(--primary-dark);
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    font-size: 0.7em;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--primary-dark);
+    opacity: 0;
+    transform: scale(0.5);
+    transition: all var(--transition-fast);
+}
+
+/* When cart has items, show badge */
+.nav-checkout-btn.has-items .nav-checkout-badge {
+    opacity: 1;
+    transform: scale(1);
+}
+
+/* Tablet adjustments */
+@media (min-width: 640px) {
+    .top-nav {
+        padding: 12px 24px;
+    }
+
+    .nav-back,
+    .nav-checkout-btn {
+        width: 44px;
+        height: 44px;
+    }
+
+    .nav-back svg,
+    .nav-checkout-icon svg {
+        width: 22px;
+        height: 22px;
+    }
+
+    .nav-checkout-badge {
+        width: 22px;
+        height: 22px;
+        font-size: 0.75em;
+    }
+}
+
+/* Desktop adjustments */
+@media (min-width: 1024px) {
+    .top-nav {
+        padding: 14px 40px;
+    }
+}
+
+/* ================================
    HEADER
    ================================ */
 
 .header {
-    background: var(--primary-gradient);
+    background: var(--primary-solid);
     color: white;
     text-align: center;
     position: relative;
@@ -340,6 +529,66 @@ p {
     font-weight: 500;
 }
 
+/* Urgency Indicator */
+.urgency-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--background-cream);
+    border: 1px solid var(--accent-gold);
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-size: 0.95em;
+    color: var(--text-dark);
+    margin-top: 8px;
+    transition: all var(--transition-medium);
+}
+
+.urgency-indicator .urgency-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.urgency-indicator .urgency-icon svg {
+    width: 18px;
+    height: 18px;
+    stroke: var(--accent-gold-dark);
+}
+
+.urgency-indicator .urgency-text {
+    font-weight: 500;
+}
+
+.urgency-indicator .remaining-count {
+    color: var(--primary-dark);
+    font-weight: 700;
+}
+
+/* Low stock state - more urgency */
+.urgency-indicator.low-stock {
+    background: #fff0f0;
+    border-color: #e53935;
+    animation: pulse-urgency 2s ease-in-out infinite;
+}
+
+.urgency-indicator.low-stock .urgency-icon svg {
+    stroke: #e53935;
+}
+
+.urgency-indicator.low-stock .remaining-count {
+    color: #e53935;
+}
+
+@keyframes pulse-urgency {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(229, 57, 53, 0);
+    }
+}
+
 /* Product Grid - Mobile First (Single Column) */
 .product-grid {
     display: grid;
@@ -431,7 +680,7 @@ p {
     width: 100%;
     height: 220px;
     overflow: hidden;
-    background: linear-gradient(135deg, var(--primary-mid) 0%, var(--primary-dark) 100%);
+    background: var(--primary-solid);
     position: relative;
 }
 
@@ -463,7 +712,7 @@ p {
     width: 100%;
     height: 220px;
     overflow: hidden;
-    background: linear-gradient(135deg, var(--primary-mid) 0%, var(--primary-dark) 100%);
+    background: var(--primary-solid);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -903,7 +1152,7 @@ p {
 }
 
 .limited-edition-banner {
-    background: var(--primary-gradient);
+    background: var(--primary-solid);
     color: white;
     text-align: center;
     position: relative;
@@ -1270,7 +1519,7 @@ select:focus {
 }
 
 .checkout-button {
-    background: var(--primary-gradient);
+    background: var(--primary-solid);
     color: white;
     border: none;
     padding: 18px 32px;
@@ -1405,14 +1654,10 @@ select:focus {
     color: var(--accent-gold-light);
 }
 
-.trust-badge svg {
+.trust-icon {
     width: 18px;
     height: 18px;
-    fill: currentColor;
-}
-
-.trust-icon {
-    font-size: 1.1em;
+    flex-shrink: 0;
 }
 
 /* ================================
@@ -1630,7 +1875,7 @@ select:focus {
     position: fixed;
     bottom: 24px;
     right: 24px;
-    background: var(--primary-gradient);
+    background: var(--primary-solid);
     color: white;
     border: none;
     padding: 14px 24px;
@@ -1658,7 +1903,7 @@ select:focus {
 
 .floating-checkout:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-large), var(--shadow-glow);
+    box-shadow: var(--shadow-large), 0 0 30px rgba(41, 171, 226, 0.4);
 }
 
 .floating-checkout:active {
@@ -1791,7 +2036,7 @@ select:focus {
 
 /* Add to Cart Button (initial state) */
 .add-to-cart-button {
-    background: var(--primary-gradient);
+    background: var(--primary-solid);
     color: white;
     padding: 15px 28px;
     border: none;
@@ -1807,9 +2052,20 @@ select:focus {
     text-transform: uppercase;
 }
 
-.add-to-cart-button:hover {
+.add-to-cart-button:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: var(--shadow-medium);
+}
+
+.add-to-cart-button:disabled {
+    background: var(--text-muted);
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+.add-to-cart-button:disabled:hover {
+    transform: none;
+    box-shadow: none;
 }
 
 /* Quantity Selector (shown after adding to cart) */
@@ -1849,8 +2105,20 @@ select:focus {
     border-color: var(--primary-mid);
 }
 
-.quantity-btn:active {
+.quantity-btn:active:not(:disabled) {
     transform: scale(0.95);
+}
+
+.quantity-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    background: var(--background-light);
+}
+
+.quantity-btn:disabled:hover {
+    background: var(--background-light);
+    color: var(--text-dark);
+    border-color: var(--border-light);
 }
 
 .quantity-btn.minus {
@@ -1955,7 +2223,7 @@ select:focus {
 
 /* Modal Header */
 .modal-header {
-    background: var(--primary-gradient);
+    background: var(--primary-solid);
     color: white;
     padding: 20px 24px;
     border-radius: 12px 12px 0 0;
@@ -2219,6 +2487,38 @@ select:focus {
     margin-top: 20px;
     padding: 16px 30px;
     font-size: 1.05em;
+}
+
+/* Empty Cart State */
+.empty-cart-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 32px 20px;
+    text-align: center;
+}
+
+.empty-cart-icon {
+    width: 48px;
+    height: 48px;
+    stroke: var(--text-muted);
+    margin-bottom: 16px;
+    opacity: 0.6;
+}
+
+.empty-cart-text {
+    font-family: var(--font-primary);
+    font-size: 1.1em;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin: 0 0 6px 0;
+}
+
+.empty-cart-subtext {
+    font-size: 0.9em;
+    color: var(--text-light);
+    margin: 0;
 }
 
 /* Desktop modal sizing */
