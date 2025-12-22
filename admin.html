@@ -1133,9 +1133,115 @@
     }
 
     // Toggle order expansion
-    function toggleOrder(orderId) {
+    async function toggleOrder(orderId) {
       const card = document.getElementById(`order-${orderId}`);
+      const wasExpanded = card.classList.contains('expanded');
       card.classList.toggle('expanded');
+
+      // If expanding and we haven't checked fulfillment yet, check it now
+      if (!wasExpanded) {
+        const order = allOrders.find(o => o.id === orderId);
+        if (order && !order.fulfillmentChecked) {
+          await checkFulfillmentStatus(order);
+        }
+      }
+    }
+
+    // Check fulfillment status for a single order
+    async function checkFulfillmentStatus(order) {
+      try {
+        const response = await fetch(
+          `/.netlify/functions/check-fulfillment?email=${encodeURIComponent(order.customer.email)}`,
+          { headers: { 'Authorization': `Bearer ${adminKey}` } }
+        );
+
+        if (response.ok) {
+          const status = await response.json();
+          order.fulfillment.cardsShipped = status.cardsShipped;
+          order.fulfillment.bookShipped = status.bookShipped;
+          order.fulfillment.cardsTrackingNumber = status.cardsTrackingNumber;
+          order.fulfillment.bookTrackingNumber = status.bookTrackingNumber;
+
+          // Update fulfillment status
+          if (order.hasPreOrder) {
+            if (status.cardsShipped && status.bookShipped) {
+              order.fulfillment.status = 'fulfilled';
+            } else if (status.cardsShipped) {
+              order.fulfillment.status = 'partial';
+            }
+          } else if (status.cardsShipped) {
+            order.fulfillment.status = 'fulfilled';
+          }
+
+          order.fulfillmentChecked = true;
+
+          // Re-render this order card
+          updateOrderCard(order);
+          updateFilterCounts();
+        }
+      } catch (e) {
+        console.error('Failed to check fulfillment:', e);
+      }
+    }
+
+    // Update a single order card without re-rendering all
+    function updateOrderCard(order) {
+      const card = document.getElementById(`order-${order.id}`);
+      if (!card) return;
+
+      // Update status badge
+      const badge = card.querySelector('.status-badge');
+      if (badge) {
+        badge.className = `status-badge ${order.fulfillment.status}`;
+        badge.textContent = order.fulfillment.status;
+      }
+
+      // Update fulfillment section
+      const cardsInput = card.querySelector(`#tracking-cards-${order.id}`);
+      if (cardsInput && order.fulfillment.cardsShipped) {
+        cardsInput.value = order.fulfillment.cardsTrackingNumber || '';
+        cardsInput.disabled = true;
+        const btn = cardsInput.nextElementSibling;
+        if (btn && btn.classList.contains('btn-ship')) {
+          btn.outerHTML = `<span class="shipped-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Shipped
+          </span>`;
+        }
+      }
+
+      const bookInput = card.querySelector(`#tracking-book-${order.id}`);
+      if (bookInput && order.fulfillment.bookShipped) {
+        bookInput.value = order.fulfillment.bookTrackingNumber || '';
+        bookInput.disabled = true;
+        const btn = bookInput.nextElementSibling;
+        if (btn && btn.classList.contains('btn-ship')) {
+          btn.outerHTML = `<span class="shipped-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            Shipped
+          </span>`;
+        }
+      }
+    }
+
+    // Update filter counts
+    function updateFilterCounts() {
+      const counts = {
+        total: allOrders.length,
+        pending: allOrders.filter(o => o.fulfillment.status === 'pending').length,
+        partial: allOrders.filter(o => o.fulfillment.status === 'partial').length,
+        fulfilled: allOrders.filter(o => o.fulfillment.status === 'fulfilled').length
+      };
+      document.getElementById('countAll').textContent = counts.total;
+      document.getElementById('countPending').textContent = counts.pending;
+      document.getElementById('countPartial').textContent = counts.partial;
+      document.getElementById('countFulfilled').textContent = counts.fulfilled;
+      document.getElementById('statPending').textContent = counts.pending;
+      document.getElementById('statFulfilled').textContent = counts.fulfilled;
     }
 
     // Ship order

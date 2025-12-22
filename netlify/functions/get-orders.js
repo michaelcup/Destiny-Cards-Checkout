@@ -54,7 +54,6 @@ exports.handler = async (event, context) => {
 
   try {
     const stripe = getStripe();
-    const keapToken = process.env.KEAP_ACCESS_TOKEN;
 
     console.log('Fetching checkout sessions from Stripe...');
 
@@ -89,27 +88,11 @@ exports.handler = async (event, context) => {
           `${item.quantity}x ${item.productName}`
         ).join(', ') || 'Unknown items';
 
-        // Check fulfillment status from Keap if we have the token
+        // Initialize fulfillment status (will be checked separately to avoid rate limits)
         let cardsShipped = false;
         let bookShipped = false;
         let cardsTrackingNumber = null;
         let bookTrackingNumber = null;
-
-        if (keapToken && fullSession.customer_details?.email) {
-          try {
-            const keapStatus = await getKeapFulfillmentStatus(
-              keapToken,
-              fullSession.customer_details.email
-            );
-            cardsShipped = keapStatus.cardsShipped;
-            bookShipped = keapStatus.bookShipped;
-            cardsTrackingNumber = keapStatus.cardsTrackingNumber;
-            bookTrackingNumber = keapStatus.bookTrackingNumber;
-          } catch (e) {
-            console.error('Failed to get Keap status:', e.message);
-            // Continue without Keap status
-          }
-        }
 
         // Determine overall fulfillment status
         let fulfillmentStatus = 'pending';
@@ -194,44 +177,3 @@ exports.handler = async (event, context) => {
     };
   }
 };
-
-// Helper to get fulfillment status from Keap
-async function getKeapFulfillmentStatus(accessToken, email) {
-  // Search for contact
-  const searchResponse = await fetch(
-    `https://api.infusionsoft.com/crm/rest/v1/contacts?email=${encodeURIComponent(email)}&optional_properties=custom_fields,tag_ids`,
-    {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json'
-      }
-    }
-  );
-
-  if (!searchResponse.ok) {
-    throw new Error(`Keap search failed: ${searchResponse.status}`);
-  }
-
-  const searchData = await searchResponse.json();
-
-  if (!searchData.contacts || searchData.contacts.length === 0) {
-    return { cardsShipped: false, bookShipped: false };
-  }
-
-  const contact = searchData.contacts[0];
-  const customFields = contact.custom_fields || [];
-
-  // Custom field IDs for tracking numbers
-  const CARDS_TRACKING_ID = 315;
-  const BOOK_TRACKING_ID = 319;
-
-  const cardsTrackingField = customFields.find(f => f.id === CARDS_TRACKING_ID);
-  const bookTrackingField = customFields.find(f => f.id === BOOK_TRACKING_ID);
-
-  return {
-    cardsShipped: !!(cardsTrackingField?.content),
-    bookShipped: !!(bookTrackingField?.content),
-    cardsTrackingNumber: cardsTrackingField?.content || null,
-    bookTrackingNumber: bookTrackingField?.content || null
-  };
-}
