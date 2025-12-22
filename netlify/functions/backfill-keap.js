@@ -289,16 +289,36 @@ async function syncToKeap(accessToken, orderData, emailConsent) {
     { id: CUSTOM_FIELDS.TOTAL_SPENT, content: amountPaid.toFixed(2) }
   ];
 
-  // Build native address object
-  const addresses = shippingAddress ? [{
-    field: 'SHIPPING',
-    line1: shippingAddress.line1,
-    line2: shippingAddress.line2 || '',
-    locality: shippingAddress.city,
-    region: shippingAddress.state,
-    postal_code: shippingAddress.postalCode,
-    country_code: shippingAddress.country
-  }] : [];
+  // Search for existing contact FIRST (needed to decide whether to include addresses)
+  const existingContact = await findKeapContact(accessToken, email);
+
+  // Build native address object - only if we have ALL valid required fields
+  // Keap requires valid 2-letter country code AND valid region (state)
+  // Skip native address if data is incomplete - the custom field still has the address text
+  // IMPORTANT: Only add addresses for NEW contacts - Keap has issues updating existing addresses
+  const addresses = [];
+  if (shippingAddress && !existingContact) {
+    const { line1, city, state, postalCode, country } = shippingAddress;
+    const hasValidCountry = country && country.length === 2;
+    const hasValidRegion = state && state.length >= 2;
+    const hasRequiredFields = line1 && city && hasValidCountry && hasValidRegion;
+
+    if (hasRequiredFields) {
+      addresses.push({
+        field: 'SHIPPING',
+        line1: line1,
+        line2: shippingAddress.line2 || '',
+        locality: city,
+        region: state,
+        postal_code: postalCode || '',
+        country_code: country
+      });
+    } else {
+      console.log('Skipping native address - incomplete data:', { line1, city, state, country });
+    }
+  } else if (existingContact) {
+    console.log('Skipping native address for existing contact - Keap rejects address updates');
+  }
 
   // Build contact payload - only include opt_in_reason if consent was given
   const contactPayload = {
@@ -308,7 +328,7 @@ async function syncToKeap(accessToken, orderData, emailConsent) {
     custom_fields: customFields
   };
 
-  // Only add addresses if we have valid data
+  // Add addresses only for new contacts
   if (addresses.length > 0) {
     contactPayload.addresses = addresses;
   }
@@ -317,9 +337,6 @@ async function syncToKeap(accessToken, orderData, emailConsent) {
   if (emailConsent) {
     contactPayload.opt_in_reason = 'Destiny Cards Purchase';
   }
-
-  // Search for existing contact
-  const existingContact = await findKeapContact(accessToken, email);
   let contactId;
 
   if (existingContact) {

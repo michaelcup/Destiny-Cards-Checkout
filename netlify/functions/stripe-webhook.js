@@ -267,16 +267,25 @@ async function integrateWithKeap(data) {
     { id: CUSTOM_FIELDS.TOTAL_SPENT, content: totalSpent.toFixed(2) }
   ];
 
-  // Build native address object for Keap contact
-  const addresses = shippingAddress ? [{
-    field: 'SHIPPING',
-    line1: shippingAddress.line1,
-    line2: shippingAddress.line2 || '',
-    locality: shippingAddress.city,
-    region: shippingAddress.state,
-    postal_code: shippingAddress.postalCode,
-    country_code: shippingAddress.country
-  }] : [];
+  // Build native address object - only if we have valid required fields
+  // Keap requires valid 2-letter country code and valid region
+  // IMPORTANT: Only add addresses for NEW contacts - Keap has issues updating existing addresses
+  const addresses = [];
+  if (shippingAddress && shippingAddress.line1 && shippingAddress.country && !isReturningCustomer) {
+    // Only add address if country code looks valid (2-letter code)
+    const countryCode = shippingAddress.country;
+    if (countryCode && countryCode.length === 2) {
+      addresses.push({
+        field: 'SHIPPING',
+        line1: shippingAddress.line1,
+        line2: shippingAddress.line2 || '',
+        locality: shippingAddress.city || '',
+        region: shippingAddress.state || '',
+        postal_code: shippingAddress.postalCode || '',
+        country_code: countryCode
+      });
+    }
+  }
 
   // Build contact payload - only include opt_in_reason if consent was given
   const contactPayload = {
@@ -286,7 +295,7 @@ async function integrateWithKeap(data) {
     custom_fields: customFields
   };
 
-  // Only add addresses if we have valid data
+  // Only add addresses for new contacts (Keap rejects address updates)
   if (addresses.length > 0) {
     contactPayload.addresses = addresses;
   }
