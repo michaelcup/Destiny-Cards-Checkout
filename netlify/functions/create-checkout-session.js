@@ -22,7 +22,7 @@ const PRODUCTS = {
   },
   'cards-book-bundle': {
     name: 'Destiny Cards + Rules To Live By Pre-Order Bundle',
-    description: 'Destiny Cards deck (ships now) + "Rules To Live By (But Not Believe)" book pre-order (ships March 2025). Items ship separately.',
+    description: 'Destiny Cards deck (ships now) + "Rules To Live By (But Not Believe)" book pre-order (ships March 2026). Items ship separately.',
     price: 5500, // in cents
     shipsNow: false,
     splitShipment: true
@@ -129,7 +129,7 @@ exports.handler = async (event, context) => {
       custom_text: {
         shipping_address: {
           message: hasPreOrder
-            ? 'Note: Your Destiny Cards will ship immediately. The book pre-order will ship separately in March 2025.'
+            ? 'Note: Your Destiny Cards will ship immediately. The book pre-order will ship separately in March 2026.'
             : 'Your Destiny Cards will ship within 3-5 business days.'
         },
         submit: {

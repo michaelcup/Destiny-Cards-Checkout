@@ -70,8 +70,17 @@ exports.handler = async (event, context) => {
   }
 };
 
-async function handleCheckoutComplete(session) {
-  console.log('Processing completed checkout:', session.id);
+async function handleCheckoutComplete(sessionFromWebhook) {
+  console.log('Processing completed checkout:', sessionFromWebhook.id);
+
+  // Retrieve full session from Stripe API to get shipping details
+  // (webhook payload doesn't include all fields by default)
+  const stripe = getStripe();
+  const session = await stripe.checkout.sessions.retrieve(sessionFromWebhook.id, {
+    expand: ['line_items', 'shipping_details']
+  });
+
+  console.log('Full session shipping_details:', JSON.stringify(session.shipping_details, null, 2));
 
   // Extract data from session
   const customerEmail = session.customer_details?.email;
@@ -171,7 +180,9 @@ async function integrateWithKeap(data) {
     CARDS_SHIPPED_DATE: 317,
     BOOK_TRACKING_NUMBER: 319,
     BOOK_SHIPPED_DATE: 321,
-    HAS_PREORDER: 323
+    HAS_PREORDER: 323,
+    ORDER_HISTORY: 325,
+    TOTAL_SPENT: 327
   };
 
   // Search for existing contact
@@ -190,6 +201,56 @@ async function integrateWithKeap(data) {
   }
 
   const searchData = await searchResponse.json();
+  const isReturningCustomer = searchData.contacts && searchData.contacts.length > 0;
+
+  // Format this order for history
+  const orderDateFormatted = new Date().toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric'
+  });
+  const thisOrderEntry = `${orderDateFormatted}: ${orderSummary} ($${amountPaid.toFixed(2)})`;
+
+  // Initialize order history and total spent for this order
+  let orderHistory = thisOrderEntry;
+  let totalSpent = amountPaid;
+
+  // If returning customer, fetch their current values and append/add
+  if (isReturningCustomer) {
+    const existingContactId = searchData.contacts[0].id;
+
+    // Fetch full contact details to get custom field values
+    const contactDetailResponse = await fetch(
+      `https://api.infusionsoft.com/crm/rest/v1/contacts/${existingContactId}?optional_properties=custom_fields`,
+      {
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        }
+      }
+    );
+
+    if (contactDetailResponse.ok) {
+      const contactDetail = await contactDetailResponse.json();
+      const existingCustomFields = contactDetail.custom_fields || [];
+
+      // Find existing ORDER_HISTORY value
+      const existingHistoryField = existingCustomFields.find(f => f.id === CUSTOM_FIELDS.ORDER_HISTORY);
+      if (existingHistoryField && existingHistoryField.content) {
+        // Prepend new order to existing history (newest first)
+        orderHistory = `${thisOrderEntry}\n---\n${existingHistoryField.content}`;
+      }
+
+      // Find existing TOTAL_SPENT value
+      const existingSpentField = existingCustomFields.find(f => f.id === CUSTOM_FIELDS.TOTAL_SPENT);
+      if (existingSpentField && existingSpentField.content) {
+        const previousTotal = parseFloat(existingSpentField.content) || 0;
+        totalSpent = previousTotal + amountPaid;
+      }
+    }
+
+    console.log(`Returning customer detected. Total spent: $${totalSpent.toFixed(2)}`);
+  }
 
   const customFields = [
     { id: CUSTOM_FIELDS.PRODUCT_ORDERED, content: productIds },
@@ -198,7 +259,9 @@ async function integrateWithKeap(data) {
     { id: CUSTOM_FIELDS.SHIPPING_ADDRESS, content: shippingAddressFormatted },
     { id: CUSTOM_FIELDS.PAYMENT_ID, content: paymentId },
     { id: CUSTOM_FIELDS.ORDER_DATE, content: new Date().toISOString().split('T')[0] },
-    { id: CUSTOM_FIELDS.HAS_PREORDER, content: hasPreOrder ? 'Yes' : 'No' }
+    { id: CUSTOM_FIELDS.HAS_PREORDER, content: hasPreOrder ? 'Yes' : 'No' },
+    { id: CUSTOM_FIELDS.ORDER_HISTORY, content: orderHistory },
+    { id: CUSTOM_FIELDS.TOTAL_SPENT, content: totalSpent.toFixed(2) }
   ];
 
   // Build native address object for Keap contact
@@ -223,7 +286,7 @@ async function integrateWithKeap(data) {
 
   let contactId;
 
-  if (searchData.contacts && searchData.contacts.length > 0) {
+  if (isReturningCustomer) {
     // Update existing contact
     contactId = searchData.contacts[0].id;
     const updateResponse = await fetch(
@@ -270,6 +333,11 @@ async function integrateWithKeap(data) {
     'Destiny Cards - Awaiting Shipment'
   ];
 
+  // Add repeat customer tag if applicable
+  if (isReturningCustomer) {
+    tags.push('Destiny Cards - Repeat Customer');
+  }
+
   // Add product-specific tags
   for (const item of cartItems) {
     if (item.productId === 'cards-only') {
@@ -281,7 +349,7 @@ async function integrateWithKeap(data) {
 
   // Add pre-order tags
   if (hasPreOrder) {
-    tags.push('Destiny Cards - Pre-Order (Book Ships March 2025)');
+    tags.push('Destiny Cards - Pre-Order (Book Ships March 2026)');
     tags.push('Destiny Cards - Pending Book Shipment');
   }
 

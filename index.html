@@ -132,7 +132,7 @@
                             <li>Rules To Live By (But Not Believe) by Thomas M. Jones. The perfect companion to deepen your practice</li>
                         </ul>
                         <div class="shipping-notice">
-                            <strong>Note:</strong> Items ship separately. Destiny Cards ship now. Book ships March 2025.
+                            <strong>Note:</strong> Items ship separately. Destiny Cards ship now. Book ships March 2026.
                         </div>
                         <div class="product-selector">
                             <button class="add-to-cart-button" data-product="cards-book-bundle" aria-label="Add Bundle to cart">Add To Cart</button>
@@ -366,7 +366,7 @@
                 description: 'Destiny Cards deck + Rules To Live By (But Not Believe) book pre-order',
                 shipsNow: false,
                 splitShipment: true,
-                shipmentNotes: 'Destiny Cards ship now. Book ships March 2025.'
+                shipmentNotes: 'Destiny Cards ship now. Book ships March 2026.'
             }
         };
 
@@ -488,7 +488,7 @@
                     `;
 
                     if (product.splitShipment) {
-                        html += `<div class="order-item-note">Ships separately: Cards now, Book March 2025</div>`;
+                        html += `<div class="order-item-note">Ships separately: Cards now, Book March 2026</div>`;
                     }
                 }
             }
@@ -614,8 +614,9 @@
 
         function addToCart(productId) {
             const totalQuantity = getTotalQuantity();
-            if (totalQuantity >= MAX_TOTAL_QUANTITY) {
-                showError(`Maximum of ${MAX_TOTAL_QUANTITY} items allowed.`);
+            const maxAllowed = window.REAL_INVENTORY !== undefined ? window.REAL_INVENTORY : MAX_TOTAL_QUANTITY;
+            if (totalQuantity >= maxAllowed) {
+                showError(maxAllowed <= 0 ? 'Sold out!' : `Only ${maxAllowed} remaining in stock.`);
                 return;
             }
             productQuantities[productId] = 1;
@@ -625,8 +626,9 @@
 
         function increaseQuantity(productId) {
             const totalQuantity = getTotalQuantity();
-            if (totalQuantity >= MAX_TOTAL_QUANTITY) {
-                showError(`Maximum of ${MAX_TOTAL_QUANTITY} items allowed.`);
+            const maxAllowed = window.REAL_INVENTORY !== undefined ? window.REAL_INVENTORY : MAX_TOTAL_QUANTITY;
+            if (totalQuantity >= maxAllowed) {
+                showError(maxAllowed <= 0 ? 'Sold out!' : `Only ${maxAllowed} remaining in stock.`);
                 return;
             }
             productQuantities[productId]++;
@@ -680,7 +682,9 @@
         function updateFloatingCheckout() {
             const totalQuantity = getTotalQuantity();
             const subtotal = getSubtotal();
-            const remaining = MAX_TOTAL_QUANTITY - totalQuantity;
+            // Use real inventory if available, otherwise fall back to max
+            const inventoryRemaining = window.REAL_INVENTORY !== undefined ? window.REAL_INVENTORY : MAX_TOTAL_QUANTITY;
+            const remaining = inventoryRemaining - totalQuantity;
 
             // Update nav checkout button
             navCartCount.textContent = totalQuantity;
@@ -734,20 +738,57 @@
                 }
             });
 
-            // Also update add-to-cart buttons
+            // Also update add-to-cart buttons (only if not already in cart)
             document.querySelectorAll('.add-to-cart-button').forEach(btn => {
-                if (remaining <= 0) {
-                    btn.disabled = true;
-                    btn.textContent = 'Sold Out';
-                } else {
-                    btn.disabled = false;
-                    btn.textContent = 'Add To Cart';
+                const productId = btn.dataset.product;
+                const inCart = productQuantities[productId] > 0;
+                if (!inCart) {
+                    if (remaining <= 0) {
+                        btn.disabled = true;
+                        btn.textContent = 'Sold Out';
+                    } else {
+                        btn.disabled = false;
+                        btn.textContent = 'Add To Cart';
+                    }
                 }
             });
         }
 
         // Initialize
         updateFloatingCheckout();
+
+        // ============================================
+        // REAL-TIME INVENTORY
+        // ============================================
+
+        async function fetchInventory() {
+            try {
+                const response = await fetch('/.netlify/functions/get-inventory');
+                if (response.ok) {
+                    const data = await response.json();
+                    // Update the remaining count display
+                    const remainingEl = document.querySelector('.remaining-count');
+                    if (remainingEl) {
+                        remainingEl.textContent = data.remaining;
+                    }
+                    // Update the max quantity based on real inventory
+                    window.REAL_INVENTORY = data.remaining;
+
+                    // If sold out, update UI
+                    if (data.remaining <= 0) {
+                        document.querySelectorAll('.add-to-cart-button').forEach(btn => {
+                            btn.disabled = true;
+                            btn.textContent = 'Sold Out';
+                        });
+                    }
+                }
+            } catch (error) {
+                console.log('Could not fetch inventory, using default');
+            }
+        }
+
+        // Fetch inventory on page load
+        fetchInventory();
 
         // ============================================
         // SCROLL-TRIGGERED ANIMATIONS
