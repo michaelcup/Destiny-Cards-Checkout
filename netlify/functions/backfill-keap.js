@@ -300,14 +300,23 @@ async function syncToKeap(accessToken, orderData, emailConsent) {
     country_code: shippingAddress.country
   }] : [];
 
+  // Build contact payload - only include opt_in_reason if consent was given
   const contactPayload = {
     given_name: firstName,
     family_name: lastName,
     email_addresses: [{ email: email, field: 'EMAIL1' }],
-    addresses: addresses,
-    opt_in_reason: emailConsent ? 'Destiny Cards Purchase' : null,
     custom_fields: customFields
   };
+
+  // Only add addresses if we have valid data
+  if (addresses.length > 0) {
+    contactPayload.addresses = addresses;
+  }
+
+  // Only add opt_in_reason if consent was given (don't send null)
+  if (emailConsent) {
+    contactPayload.opt_in_reason = 'Destiny Cards Purchase';
+  }
 
   // Search for existing contact
   const existingContact = await findKeapContact(accessToken, email);
@@ -329,7 +338,10 @@ async function syncToKeap(accessToken, orderData, emailConsent) {
     );
 
     if (!updateResponse.ok) {
-      throw new Error(`Contact update failed: ${updateResponse.status}`);
+      const errorBody = await updateResponse.text();
+      console.error('Keap update error:', errorBody);
+      console.error('Payload sent:', JSON.stringify(contactPayload, null, 2));
+      throw new Error(`Contact update failed: ${updateResponse.status} - ${errorBody}`);
     }
   } else {
     // Create new contact
@@ -346,7 +358,10 @@ async function syncToKeap(accessToken, orderData, emailConsent) {
     );
 
     if (!createResponse.ok) {
-      throw new Error(`Contact creation failed: ${createResponse.status}`);
+      const errorBody = await createResponse.text();
+      console.error('Keap create error:', errorBody);
+      console.error('Payload sent:', JSON.stringify(contactPayload, null, 2));
+      throw new Error(`Contact creation failed: ${createResponse.status} - ${errorBody}`);
     }
 
     const newContact = await createResponse.json();
