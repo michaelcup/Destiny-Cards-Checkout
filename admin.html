@@ -977,10 +977,13 @@
 
           renderOrders();
         } else if (ordersRes.status === 401) {
-          showToast('Session expired. Please sign in again.', 'error');
+          const errorData = await ordersRes.json();
+          showToast(errorData.error || 'Authentication failed', 'error');
           logout();
         } else {
-          showToast('Failed to load orders', 'error');
+          const errorData = await ordersRes.json().catch(() => ({}));
+          showToast(errorData.message || errorData.error || 'Failed to load orders', 'error');
+          console.error('Orders fetch failed:', ordersRes.status, errorData);
         }
       } catch (error) {
         console.error('Dashboard load error:', error);
