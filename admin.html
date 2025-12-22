@@ -174,6 +174,10 @@
       to { transform: rotate(360deg); }
     }
 
+    .spinning {
+      animation: spin 1s linear infinite;
+    }
+
     .btn-logout {
       padding: 0.5rem 1rem;
       background: transparent;
@@ -743,6 +747,243 @@
       margin-bottom: 0.5rem;
     }
 
+    /* Admin Actions */
+    .admin-actions {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+    }
+
+    .btn-action {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .btn-action:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+      border-color: var(--border-default);
+    }
+
+    .btn-action svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    .btn-action.btn-warning {
+      border-color: var(--status-pending);
+      color: var(--status-pending);
+    }
+
+    .btn-action.btn-warning:hover {
+      background: var(--status-pending-bg);
+    }
+
+    .btn-action:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(8, 9, 12, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      padding: 2rem;
+    }
+
+    .modal-overlay.hidden {
+      display: none;
+    }
+
+    .modal-content {
+      background: var(--bg-raised);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      width: 100%;
+      max-width: 700px;
+      max-height: 80vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: var(--shadow-md);
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .modal-header h3 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      transition: color var(--transition-fast);
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .modal-body {
+      padding: 1.5rem;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .modal-footer {
+      padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border-subtle);
+      display: flex;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    .btn-secondary {
+      padding: 0.625rem 1.25rem;
+      background: var(--bg-elevated);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-size: 0.875rem;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition-fast);
+    }
+
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      color: var(--text-primary);
+    }
+
+    /* Backfill Results */
+    .backfill-summary {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .backfill-stat {
+      background: var(--bg-elevated);
+      padding: 1rem;
+      border-radius: var(--radius-sm);
+      text-align: center;
+    }
+
+    .backfill-stat-value {
+      font-size: 1.5rem;
+      font-weight: 600;
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-primary);
+    }
+
+    .backfill-stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .backfill-stat.synced .backfill-stat-value {
+      color: var(--status-fulfilled);
+    }
+
+    .backfill-stat.skipped .backfill-stat-value {
+      color: var(--text-secondary);
+    }
+
+    .backfill-stat.errors .backfill-stat-value {
+      color: var(--status-error);
+    }
+
+    .backfill-list {
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .backfill-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+    }
+
+    .backfill-item-email {
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    .backfill-item-status {
+      padding: 0.25rem 0.5rem;
+      border-radius: 100px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      font-weight: 500;
+    }
+
+    .backfill-item-status.would_sync {
+      background: var(--status-partial-bg);
+      color: var(--status-partial);
+    }
+
+    .backfill-item-status.synced {
+      background: var(--status-fulfilled-bg);
+      color: var(--status-fulfilled);
+    }
+
+    .backfill-item-status.skipped {
+      background: var(--bg-base);
+      color: var(--text-muted);
+    }
+
+    .backfill-message {
+      padding: 1rem;
+      background: var(--bg-elevated);
+      border-radius: var(--radius-sm);
+      margin-bottom: 1rem;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+
+    .backfill-message.success {
+      border-left: 3px solid var(--status-fulfilled);
+    }
+
+    .backfill-message.preview {
+      border-left: 3px solid var(--status-partial);
+    }
+
     /* Responsive */
     @media (max-width: 900px) {
       .order-header {
@@ -779,6 +1020,18 @@
 
       .order-items {
         display: none;
+      }
+
+      .backfill-summary {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .admin-actions {
+        flex-direction: column;
+      }
+
+      .btn-action {
+        justify-content: center;
       }
     }
   </style>
@@ -843,6 +1096,41 @@
           <div class="stat-label">Fulfilled</div>
           <div class="stat-value" id="statFulfilled">--</div>
           <div class="stat-subtitle">orders shipped</div>
+        </div>
+      </div>
+
+      <!-- Admin Actions -->
+      <div class="admin-actions">
+        <button class="btn-action" onclick="runBackfill(true)" id="btnPreviewBackfill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          Preview Backfill
+        </button>
+        <button class="btn-action btn-warning" onclick="runBackfill(false)" id="btnExecuteBackfill">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+          Execute Backfill
+        </button>
+      </div>
+
+      <!-- Backfill Results Modal -->
+      <div class="modal-overlay hidden" id="backfillModal">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 id="modalTitle">Backfill Results</h3>
+            <button class="modal-close" onclick="closeBackfillModal()">&times;</button>
+          </div>
+          <div class="modal-body" id="modalBody">
+            <!-- Results will be inserted here -->
+          </div>
+          <div class="modal-footer">
+            <button class="btn-secondary" onclick="closeBackfillModal()">Close</button>
+          </div>
         </div>
       </div>
 
@@ -1319,6 +1607,117 @@
       const div = document.createElement('div');
       div.textContent = text || '';
       return div.innerHTML;
+    }
+
+    // Backfill functions
+    async function runBackfill(dryRun) {
+      const btn = dryRun ? document.getElementById('btnPreviewBackfill') : document.getElementById('btnExecuteBackfill');
+      const originalText = btn.innerHTML;
+
+      btn.disabled = true;
+      btn.innerHTML = `<svg class="spinning" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M23 4v6h-6M1 20v-6h6"/>
+        <path d="M3.51 9a9 9 0 0114.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0020.49 15"/>
+      </svg> ${dryRun ? 'Previewing...' : 'Syncing...'}`;
+
+      try {
+        const response = await fetch('/.netlify/functions/backfill-keap', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${adminKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ dryRun, limit: 100 })
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          showBackfillResults(data, dryRun);
+        } else {
+          showToast(data.error || 'Backfill failed', 'error');
+        }
+      } catch (error) {
+        showToast('Network error: ' + error.message, 'error');
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = originalText;
+    }
+
+    function showBackfillResults(data, dryRun) {
+      const modal = document.getElementById('backfillModal');
+      const title = document.getElementById('modalTitle');
+      const body = document.getElementById('modalBody');
+
+      title.textContent = dryRun ? 'Backfill Preview' : 'Backfill Complete';
+
+      const results = data.results;
+      const messageClass = dryRun ? 'preview' : 'success';
+
+      let html = `
+        <div class="backfill-message ${messageClass}">
+          ${data.message}
+        </div>
+        <div class="backfill-summary">
+          <div class="backfill-stat">
+            <div class="backfill-stat-value">${results.processed}</div>
+            <div class="backfill-stat-label">Processed</div>
+          </div>
+          <div class="backfill-stat synced">
+            <div class="backfill-stat-value">${results.synced}</div>
+            <div class="backfill-stat-label">${dryRun ? 'To Sync' : 'Synced'}</div>
+          </div>
+          <div class="backfill-stat skipped">
+            <div class="backfill-stat-value">${results.skipped}</div>
+            <div class="backfill-stat-label">Skipped</div>
+          </div>
+          <div class="backfill-stat errors">
+            <div class="backfill-stat-value">${results.errors.length}</div>
+            <div class="backfill-stat-label">Errors</div>
+          </div>
+        </div>
+      `;
+
+      if (results.details && results.details.length > 0) {
+        html += `<h4 style="margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--text-secondary);">Details</h4>`;
+        html += `<div class="backfill-list">`;
+        for (const item of results.details) {
+          html += `
+            <div class="backfill-item">
+              <span class="backfill-item-email">${escapeHtml(item.email || item.sessionId)}</span>
+              <span class="backfill-item-status ${item.status}">${item.status.replace('_', ' ')}</span>
+            </div>
+          `;
+        }
+        html += `</div>`;
+      }
+
+      if (results.errors && results.errors.length > 0) {
+        html += `<h4 style="margin: 1rem 0 0.75rem; font-size: 0.875rem; color: var(--status-error);">Errors</h4>`;
+        html += `<div class="backfill-list">`;
+        for (const err of results.errors) {
+          html += `
+            <div class="backfill-item">
+              <span class="backfill-item-email">${escapeHtml(err.sessionId)}</span>
+              <span style="color: var(--status-error); font-size: 0.75rem;">${escapeHtml(err.error)}</span>
+            </div>
+          `;
+        }
+        html += `</div>`;
+      }
+
+      body.innerHTML = html;
+      modal.classList.remove('hidden');
+
+      // Refresh dashboard if we actually synced
+      if (!dryRun && results.synced > 0) {
+        loadDashboard();
+      }
+    }
+
+    function closeBackfillModal() {
+      document.getElementById('backfillModal').classList.add('hidden');
     }
 
     function showToast(message, type = 'success') {

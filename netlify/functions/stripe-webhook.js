@@ -76,17 +76,20 @@ async function handleCheckoutComplete(sessionFromWebhook) {
   // Retrieve full session from Stripe API to get shipping details
   // (webhook payload doesn't include all fields by default)
   const stripe = getStripe();
-  const session = await stripe.checkout.sessions.retrieve(sessionFromWebhook.id, {
-    expand: ['line_items', 'shipping_details']
-  });
+  const session = await stripe.checkout.sessions.retrieve(sessionFromWebhook.id);
 
-  console.log('Full session shipping_details:', JSON.stringify(session.shipping_details, null, 2));
+  // Handle both old and new Stripe API versions
+  // Old: session.shipping_details
+  // New (2025-03-31+): session.collected_information.shipping_details
+  const shippingDetails = session.shipping_details || session.collected_information?.shipping_details;
+
+  console.log('Full session shipping_details:', JSON.stringify(shippingDetails, null, 2));
 
   // Extract data from session
   const customerEmail = session.customer_details?.email;
   const customerName = session.customer_details?.name || '';
-  const shippingAddress = session.shipping_details?.address;
-  const shippingName = session.shipping_details?.name;
+  const shippingAddress = shippingDetails?.address;
+  const shippingName = shippingDetails?.name;
   const metadata = session.metadata || {};
 
   // Parse cart items from metadata
