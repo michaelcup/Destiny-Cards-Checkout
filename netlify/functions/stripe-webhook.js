@@ -201,10 +201,22 @@ async function integrateWithKeap(data) {
     { id: CUSTOM_FIELDS.HAS_PREORDER, content: hasPreOrder ? 'Yes' : 'No' }
   ];
 
+  // Build native address object for Keap contact
+  const addresses = shippingAddress ? [{
+    field: 'SHIPPING',
+    line1: shippingAddress.line1,
+    line2: shippingAddress.line2 || '',
+    locality: shippingAddress.city,
+    region: shippingAddress.state,
+    postal_code: shippingAddress.postalCode,
+    country_code: shippingAddress.country
+  }] : [];
+
   const contactPayload = {
     given_name: firstName,
     family_name: lastName,
     email_addresses: [{ email: email, field: 'EMAIL1' }],
+    addresses: addresses,
     opt_in_reason: emailConsent ? 'Destiny Cards Purchase' : null,
     custom_fields: customFields
   };
