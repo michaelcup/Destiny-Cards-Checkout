@@ -292,46 +292,17 @@ async function syncToKeap(accessToken, orderData, emailConsent) {
   // Search for existing contact FIRST (needed to decide whether to include addresses)
   const existingContact = await findKeapContact(accessToken, email);
 
-  // Build native address object - only if we have ALL valid required fields
-  // Keap requires valid 2-letter country code AND valid region (state)
-  // Skip native address if data is incomplete - the custom field still has the address text
-  // IMPORTANT: Only add addresses for NEW contacts - Keap has issues updating existing addresses
-  const addresses = [];
-  if (shippingAddress && !existingContact) {
-    const { line1, city, state, postalCode, country } = shippingAddress;
-    const hasValidCountry = country && country.length === 2;
-    const hasValidRegion = state && state.length >= 2;
-    const hasRequiredFields = line1 && city && hasValidCountry && hasValidRegion;
+  // NOTE: We skip native Keap address fields entirely - Keap's API rejects them with
+  // "SHIPPING Country Code is invalid, SHIPPING Region is invalid" even for valid data.
+  // The shipping address is already saved in custom field 309 as formatted text.
 
-    if (hasRequiredFields) {
-      addresses.push({
-        field: 'SHIPPING',
-        line1: line1,
-        line2: shippingAddress.line2 || '',
-        locality: city,
-        region: state,
-        postal_code: postalCode || '',
-        country_code: country
-      });
-    } else {
-      console.log('Skipping native address - incomplete data:', { line1, city, state, country });
-    }
-  } else if (existingContact) {
-    console.log('Skipping native address for existing contact - Keap rejects address updates');
-  }
-
-  // Build contact payload - only include opt_in_reason if consent was given
+  // Build contact payload
   const contactPayload = {
     given_name: firstName,
     family_name: lastName,
     email_addresses: [{ email: email, field: 'EMAIL1' }],
     custom_fields: customFields
   };
-
-  // Add addresses only for new contacts
-  if (addresses.length > 0) {
-    contactPayload.addresses = addresses;
-  }
 
   // Only add opt_in_reason if consent was given (don't send null)
   if (emailConsent) {

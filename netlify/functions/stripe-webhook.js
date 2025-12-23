@@ -267,38 +267,17 @@ async function integrateWithKeap(data) {
     { id: CUSTOM_FIELDS.TOTAL_SPENT, content: totalSpent.toFixed(2) }
   ];
 
-  // Build native address object - only if we have valid required fields
-  // Keap requires valid 2-letter country code and valid region
-  // IMPORTANT: Only add addresses for NEW contacts - Keap has issues updating existing addresses
-  const addresses = [];
-  if (shippingAddress && shippingAddress.line1 && shippingAddress.country && !isReturningCustomer) {
-    // Only add address if country code looks valid (2-letter code)
-    const countryCode = shippingAddress.country;
-    if (countryCode && countryCode.length === 2) {
-      addresses.push({
-        field: 'SHIPPING',
-        line1: shippingAddress.line1,
-        line2: shippingAddress.line2 || '',
-        locality: shippingAddress.city || '',
-        region: shippingAddress.state || '',
-        postal_code: shippingAddress.postalCode || '',
-        country_code: countryCode
-      });
-    }
-  }
+  // NOTE: We skip native Keap address fields entirely - Keap's API rejects them with
+  // "SHIPPING Country Code is invalid, SHIPPING Region is invalid" even for valid data.
+  // The shipping address is already saved in custom field 309 as formatted text.
 
-  // Build contact payload - only include opt_in_reason if consent was given
+  // Build contact payload
   const contactPayload = {
     given_name: firstName,
     family_name: lastName,
     email_addresses: [{ email: email, field: 'EMAIL1' }],
     custom_fields: customFields
   };
-
-  // Only add addresses for new contacts (Keap rejects address updates)
-  if (addresses.length > 0) {
-    contactPayload.addresses = addresses;
-  }
 
   // Only add opt_in_reason if consent was given (don't send null)
   if (emailConsent) {
@@ -323,7 +302,10 @@ async function integrateWithKeap(data) {
     );
 
     if (!updateResponse.ok) {
-      throw new Error(`Contact update failed: ${updateResponse.status}`);
+      const errorBody = await updateResponse.text();
+      console.error('Keap update error:', errorBody);
+      console.error('Payload sent:', JSON.stringify(contactPayload, null, 2));
+      throw new Error(`Contact update failed: ${updateResponse.status} - ${errorBody}`);
     }
   } else {
     // Create new contact
@@ -340,7 +322,10 @@ async function integrateWithKeap(data) {
     );
 
     if (!createResponse.ok) {
-      throw new Error(`Contact creation failed: ${createResponse.status}`);
+      const errorBody = await createResponse.text();
+      console.error('Keap create error:', errorBody);
+      console.error('Payload sent:', JSON.stringify(contactPayload, null, 2));
+      throw new Error(`Contact creation failed: ${createResponse.status} - ${errorBody}`);
     }
 
     const newContact = await createResponse.json();
